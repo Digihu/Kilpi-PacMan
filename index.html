@@ -215,7 +215,9 @@ function changeSeason(sheet) {
   currentSheet = sheet;
   longData = {};
   currentId = null;
-  document.getElementById('detail').innerHTML = '<div style="color:var(--muted);padding:40px;text-align:center">Vyber produkt ze seznamu</div>';
+  LIST_DATA.splice(0, LIST_DATA.length);
+  document.getElementById('detail').innerHTML = '<div style="color:var(--muted);padding:40px;text-align:center">Načítám sezónu…</div>';
+  document.getElementById('productList').innerHTML = '';
   loadFromSheets();
 }
 
@@ -245,10 +247,12 @@ async function loadFromSheets() {
     setProgress(70);
     setLoadMsg('Zpracovávám data…');
     d.products.forEach(p => {
-      const lp = LIST_DATA.find(x => x.MODEL_ID === p.MODEL_ID);
-      if (lp) {
-        Object.keys(p).filter(k => k.startsWith('short_')).forEach(k => { lp[k] = p[k]; });
+      let lp = LIST_DATA.find(x => x.MODEL_ID === p.MODEL_ID);
+      if (!lp) {
+        lp = { MODEL_ID: p.MODEL_ID, STYLE_NAME: p.STYLE_NAME || '', GARMENT: p.GARMENT || '' };
+        LIST_DATA.push(lp);
       }
+      Object.keys(p).filter(k => k.startsWith('short_')).forEach(k => { lp[k] = p[k]; });
       if (!longData[p.MODEL_ID]) longData[p.MODEL_ID] = {};
       Object.keys(p).filter(k => k.startsWith('long_')).forEach(k => {
         longData[p.MODEL_ID][k] = p[k];
