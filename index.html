@@ -216,8 +216,10 @@ function changeSeason(sheet) {
   longData = {};
   currentId = null;
   LIST_DATA.splice(0, LIST_DATA.length);
-  document.getElementById('detail').innerHTML = '<div style="color:var(--muted);padding:40px;text-align:center">Načítám sezónu…</div>';
-  document.getElementById('productList').innerHTML = '';
+  const det = document.getElementById('detail');
+  if (det) det.innerHTML = '<div style="color:var(--muted);padding:40px;text-align:center">Načítám sezónu…</div>';
+  const pl = document.getElementById('sidebar');
+  if (pl) pl.innerHTML = '';
   loadFromSheets();
 }
 
@@ -260,6 +262,7 @@ async function loadFromSheets() {
     });
     setProgress(100);
     hideOverlay();
+    buildCatFilter();
     renderList();
     if (currentId) renderDetail(currentId);
     showStatus('✓ Data načtena ze Sheets', '#4af0c2');
