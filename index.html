@@ -123,7 +123,21 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 .btn-save { background: var(--accent); color: var(--bg); border: none; border-radius: 7px; padding: 7px 16px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
 #testResult { font-size: 11px; margin-top: 6px; min-height: 16px; }
 
-::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+::-webkit-scrollbar { width: 4px; }
+
+/* VARIANT WARNING MODAL */
+#variantModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 300; align-items: center; justify-content: center; }
+#variantModal.open { display: flex; }
+#variantBox { background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; padding: 24px 28px; width: 380px; max-width: 95vw; }
+#variantBox .vw-icon { font-size: 28px; margin-bottom: 10px; }
+#variantBox h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+#variantBox p { color: var(--muted); font-size: 12px; line-height: 1.6; margin-bottom: 6px; }
+#variantBox .vw-id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent3); background: rgba(240,74,138,0.08); border: 1px solid rgba(240,74,138,0.2); border-radius: 5px; padding: 2px 8px; display: inline-block; margin-bottom: 16px; }
+#variantBox .vw-btns { display: flex; gap: 8px; justify-content: flex-end; }
+#variantBox .vw-cancel { background: transparent; border: 1px solid var(--border2); color: var(--muted); border-radius: 7px; padding: 7px 16px; font-size: 12px; cursor: pointer; font-family: inherit; }
+#variantBox .vw-cancel:hover { color: var(--text); }
+#variantBox .vw-confirm { background: var(--accent3); color: #fff; border: none; border-radius: 7px; padding: 7px 16px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+#variantBox .vw-confirm:hover { opacity: 0.85; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
 /* ── PAC-MAN ANIMATION ───────────────────────────────── */
 #pacman-anim {
@@ -230,6 +244,20 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 </div>
 
 <div id="langBar"></div>
+
+<div id="variantModal">
+  <div id="variantBox">
+    <div class="vw-icon">⚠️</div>
+    <h3>Editace konkrétní modelobarvy</h3>
+    <p>Chystáš se upravit popis pouze pro:</p>
+    <span class="vw-id" id="variantModalId"></span>
+    <p>Změny se <strong style="color:var(--accent3)">neprojeví</strong> v masteru ani ostatních barvách. Pokud chceš změnit popis pro všechny barvy, uprav master model.</p>
+    <div class="vw-btns">
+      <button class="vw-cancel" onclick="closeVariantModal()">Zrušit</button>
+      <button class="vw-confirm" onclick="confirmVariantEdit()">Rozumím, upravit jen tuto barvu</button>
+    </div>
+  </div>
+</div>
 
 <div id="main">
   <div id="sidebar"></div>
@@ -656,10 +684,40 @@ function handleTextareaInput(ta, modelId, field) {
   scheduleAutosave(modelId, field, ta.value);
 }
 
+let _pendingVariantEdit = null;
+
 function toggleEdit(modelId, type, field) {
-  if (currentEditField === field) { currentEditField = null; }
-  else { currentEditField = field; }
+  if (currentEditField === field) {
+    currentEditField = null;
+    renderDetail(modelId);
+    return;
+  }
+  // If variant and not yet confirmed, show warning
+  if (!isMaster(modelId) && _pendingVariantEdit !== modelId + '::' + field) {
+    _pendingVariantEdit = modelId + '::' + field;
+    document.getElementById('variantModalId').textContent = modelId;
+    document.getElementById('variantModal').classList.add('open');
+    return;
+  }
+  _pendingVariantEdit = null;
+  currentEditField = field;
   renderDetail(modelId);
+}
+
+function closeVariantModal() {
+  _pendingVariantEdit = null;
+  document.getElementById('variantModal').classList.remove('open');
+}
+
+function confirmVariantEdit() {
+  document.getElementById('variantModal').classList.remove('open');
+  if (!_pendingVariantEdit) return;
+  const [modelId, field] = _pendingVariantEdit.split('::');
+  const type = field.startsWith('short_') ? 'short' : 'long';
+  _pendingVariantEdit = modelId + '::' + field; // keep set so toggleEdit skips modal
+  currentEditField = field;
+  renderDetail(modelId);
+  _pendingVariantEdit = null;
 }
 
 function revertField(btn) {
