@@ -330,6 +330,13 @@ label.chk { display: flex; align-items: center; gap: 8px; font-size: 12px; color
 #forkBox p { font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.6; }
 #forkBox .f-btns { display: flex; gap: 10px; flex-wrap: wrap; }
 #forkMsg { margin-top: 12px; font-size: 11.5px; color: var(--accent2); font-family: 'JetBrains Mono', monospace; }
+#lockPanel { background: var(--card); border: 1.5px solid var(--border2); border-radius: 10px; padding: 18px; }
+#lockPanel.locked { border-color: var(--accent3); background: #fbe3e3; }
+#lockPanel h5 { font-size: 12.5px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+#lockPanel p { font-size: 11.5px; color: var(--muted); line-height: 1.6; margin-bottom: 12px; }
+#lockRow { display: flex; gap: 8px; }
+#codeInput { flex: 1; max-width: 260px; background: #fff; border: 1.5px solid var(--border2); border-radius: 8px; padding: 10px 12px; font-size: 13px; font-family: inherit; color: var(--text); }
+#lockMsg { margin-top: 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace; min-height: 14px; }
 #backBtn { background: var(--card); border: 1px solid var(--border2); color: var(--muted); border-radius: 7px; padding: 5px 11px; font-size: 11px; cursor: pointer; font-family: inherit; display: none; }
 #backBtn:hover { color: var(--text); }
 </style>
@@ -439,13 +446,22 @@ label.chk { display: flex; align-items: center; gap: 8px; font-size: 12px; color
 
     <div class="gen-step">
       <h4>3 · GENEROVÁNÍ</h4>
-      <div id="runRow">
+
+      <div id="lockPanel" class="locked">
+        <h5>🔒 Generování je chráněné heslem</h5>
+        <p>Prohlédnout generátor i nahrát podklad můžete volně. Samotné generování ale běží přes placené API — proto je za heslem. Heslo vám dá správce Pac-Mana.</p>
+        <div id="lockRow">
+          <input id="codeInput" type="password" placeholder="Zadejte heslo" autocomplete="off">
+          <button class="g-btn g-run" id="unlockBtn" onclick="unlockGen()">Odemknout</button>
+        </div>
+        <div id="lockMsg"></div>
+      </div>
+
+      <div id="runRow" style="margin-top:14px">
         <button class="g-btn g-run" id="runBtn" disabled onclick="runGen()">▶ Spustit generování</button>
         <button class="g-btn g-stop" id="stopBtn" style="display:none" onclick="genStop=true">■ Stop</button>
         <button class="g-btn g-alt" id="testBtn" disabled onclick="testOne()">🧪 Test 1 volání</button>
-        <button class="g-btn g-alt" id="codeBtn" onclick="setGenCode()">🔒 Kód</button>
       </div>
-      <div id="codeState" style="font-size:11px;margin-top:8px;color:var(--muted)"></div>
       <div id="progWrap"><div id="progFill"></div></div>
       <div id="progMsg">Nejprve nahrajte podklad.</div>
       <div id="errBox" style="display:none;margin-top:12px;background:rgba(240,74,138,0.07);border:1px solid var(--accent3);border-radius:8px;padding:12px 14px">
@@ -1163,25 +1179,51 @@ function showEditor() {
 // Cteni a editace popisku kod nepotrebuji.
 const CODE_KEY = 'kilpi_gen_code';
 const getCode = () => localStorage.getItem(CODE_KEY) || '';
+// Zamek: prohlizet a nahrat podklad lze volne. Generovani a zakladani listu vyzaduje heslo.
 function renderCodeState() {
-  const el = document.getElementById('codeState'); if (!el) return;
-  const c = getCode();
-  el.innerHTML = c
-    ? '✓ Kód uložen. <a href="#" onclick="clearGenCode();return false" style="color:var(--muted)">Změnit</a>'
-    : '⚠ Bez kódu nelze generovat ani zakládat list. Kód vám dá správce Pac-Mana.';
-  el.style.color = c ? 'var(--accent)' : 'var(--accent3)';
+  const panel = document.getElementById('lockPanel'); if (!panel) return;
+  const unlocked = !!getCode();
+  panel.classList.toggle('locked', !unlocked);
+  panel.innerHTML = unlocked
+    ? '<h5>✓ Odemčeno</h5><p style="margin:0">Generování i zakládání listu je povolené. '
+      + '<a href="#" onclick="clearGenCode();return false" style="color:var(--accent)">Zamknout zpět</a></p>'
+    : '<h5>🔒 Generování je chráněné heslem</h5>'
+      + '<p>Prohlédnout generátor i nahrát podklad můžete volně. Samotné generování ale běží přes placené API — proto je za heslem. Heslo vám dá správce Pac-Mana.</p>'
+      + '<div id="lockRow"><input id="codeInput" type="password" placeholder="Zadejte heslo" autocomplete="off">'
+      + '<button class="g-btn g-run" id="unlockBtn" onclick="unlockGen()">Odemknout</button></div><div id="lockMsg"></div>';
+  const inp = document.getElementById('codeInput');
+  if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') unlockGen(); });
+  refreshRunButtons();
 }
-function setGenCode() {
-  const c = prompt('Přístupový kód pro generování:', getCode());
-  if (c === null) return;
-  const v = c.trim();
-  if (v) localStorage.setItem(CODE_KEY, v); else localStorage.removeItem(CODE_KEY);
-  renderCodeState();
+// tlacitka jsou aktivni jen kdyz je podklad I heslo
+function refreshRunButtons() {
+  const ready = !!(genGroups.length && getCode());
+  ['runBtn','testBtn'].forEach(id => { const e = document.getElementById(id); if (e) e.disabled = !ready; });
+}
+// heslo overime hned proti backendu -> clovek se chybu dozvi ted, ne az u prvniho volani
+async function unlockGen() {
+  const inp = document.getElementById('codeInput'); if (!inp) return;
+  const v = inp.value.trim();
+  const msg = document.getElementById('lockMsg');
+  if (!v) { msg.textContent = '⚠ Zadejte heslo.'; msg.style.color = 'var(--accent3)'; return; }
+  if (!scriptUrl) { msg.textContent = '⚠ Není nastavený backend (⚙ Backend).'; msg.style.color = 'var(--accent3)'; return; }
+  msg.textContent = 'Ověřuji…'; msg.style.color = 'var(--muted)';
+  try {
+    const r = await fetch(scriptUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'checkCode', code: v }) });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || 'Neplatné heslo.');
+    localStorage.setItem(CODE_KEY, v);
+    renderCodeState();
+  } catch (e) {
+    msg.textContent = '✗ ' + e.message;
+    msg.style.color = 'var(--accent3)';
+  }
 }
 function clearGenCode() { localStorage.removeItem(CODE_KEY); renderCodeState(); }
 // pri chybe kodu ho zapomeneme, at si clovek muze zadat jiny
 function handleCodeError(msg) {
-  if (/kód|kod|unauthor/i.test(msg)) { localStorage.removeItem(CODE_KEY); renderCodeState(); }
+  if (/heslo|kód|kod|unauthor/i.test(msg)) { localStorage.removeItem(CODE_KEY); renderCodeState(); }
 }
 
 /* ═══════════════ GENERATOR ═══════════════ */
@@ -1413,8 +1455,7 @@ function parseRaw() {
         (genProducts.filter(p => p._badCode).length ? '<div class="chip" style="border-color:var(--accent3)">⚠ Nevalidní kód: <b>' + genProducts.filter(p => p._badCode).length + '</b></div>' : '') +
         (ds ? '<div class="chip">Sezóna z podkladu: <b>' + targetSheetName() + '</b></div>' : '') +
         '<div class="chip" style="border-color:var(--accent2)">Volání API: <b>' + genGroups.length + '</b></div>';
-      document.getElementById('runBtn').disabled = false;
-      document.getElementById('testBtn').disabled = false;
+      refreshRunButtons();
       msg.textContent = 'Připraveno: ' + genGroups.length + ' volání → ' + genProducts.length + ' modelobarev.';
     } catch (err) {
       msg.textContent = '⚠ ' + err.message;
