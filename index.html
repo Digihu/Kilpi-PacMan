@@ -1325,7 +1325,7 @@ async function callGenerate(prompt) {
   const r = await fetch(scriptUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ action: 'generate', model: GEN_MODEL, system: genSystem(), messages: [{ role: 'user', content: prompt }] })
+    body: JSON.stringify({ action: 'generate', model: GEN_MODEL, effort: 'low', system: genSystem(), messages: [{ role: 'user', content: prompt }] })
   });
   const txt = await r.text();
   if (!r.ok) throw new Error('HTTP ' + r.status + ' od Apps Scriptu: ' + txt.slice(0, 160));
@@ -1333,9 +1333,14 @@ async function callGenerate(prompt) {
   try { d = JSON.parse(txt); }
   catch (e) { throw new Error('Apps Script nevrátil JSON (nejspíš chyba/přihlášení): ' + txt.slice(0, 160)); }
   if (!d.ok) throw new Error(d.error || ('status ' + d.status));
-  let t = (d.data.content || []).map(b => b.text || '').join('').trim();
+  let t = (d.data.content || []).filter(b => b.type === 'text').map(b => b.text || '').join('').trim();
   t = t.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/, '');
-  return JSON.parse(t);
+  if (!t) throw new Error('Model nevrátil žádný text (jen thinking blok).');
+  let out;
+  try { out = JSON.parse(t); }
+  catch (e) { throw new Error('Odpověď není platný JSON – nejspíš useknutá. Začátek: ' + t.slice(0, 120)); }
+  out.__usage = d.data.usage || d.usage || null;
+  return out;
 }
 
 function showErr(e) {
@@ -1352,6 +1357,7 @@ function showErr(e) {
   else if (/nevrátil JSON|Sign in|DOCTYPE/i.test(e)) hint = 'Apps Script vrátil HTML místo dat – web app není nasazená s přístupem "Anyone", nebo je špatná /exec URL.';
   else if (/max_tokens|useknut/i.test(e)) hint = 'Odpověď byla příliš dlouhá. Zvyšte max_tokens v Code.gs, nebo vypněte <ul> seznam.';
   else if (/JSON|Unexpected token/i.test(e)) hint = 'Model nevrátil čistý JSON – nejspíš useknutá odpověď. Zkuste znovu, případně vypněte <ul>.';
+  else if (/timeout|timed out|vypršel/i.test(e)) hint = 'Volání trvalo příliš dlouho. V Code.gs je fetchTimeoutSeconds: 180 – ověřte, že máte nasazenou novou verzi.';
   else if (/Failed to fetch|NetworkError/i.test(e)) hint = 'Nedostupný backend – zkontrolujte /exec URL v ⚙ Backend a že je nasazený pro "Anyone".';
   h.textContent = hint;
 }
@@ -1363,17 +1369,34 @@ async function testOne() {
   hideErr();
   const msg = document.getElementById('progMsg');
   const p = genProducts[genGroups[0].rep];
-  msg.textContent = '🧪 Testuji jedno volání: ' + p.STYLE_NAME + ' …';
+  const t0 = Date.now();
+  const tick = setInterval(() => {
+    msg.textContent = '🧪 Testuji jedno volání: ' + p.STYLE_NAME + ' … ' + Math.round((Date.now() - t0) / 1000) + ' s';
+  }, 1000);
+  msg.textContent = '🧪 Testuji jedno volání: ' + p.STYLE_NAME + ' … 0 s';
   try {
     const res = await callGenerate(buildPrompt(p));
+    clearInterval(tick);
+    const secs = Math.round((Date.now() - t0) / 1000);
+    const u = res.__usage;
+    let cost = '';
+    if (u) {
+      const inTok = u.input_tokens || 0, outTok = u.output_tokens || 0;
+      const per = (inTok * 2 + outTok * 10) / 1e6;          // Sonnet 5, úvodní ceny
+      cost = ' | ' + inTok + ' in / ' + outTok + ' out tok · ' + per.toFixed(4) + ' $ za volání · odhad celkem ' +
+             (per * genGroups.length).toFixed(2) + ' $ (' + genGroups.length + ' volání)';
+    }
+    console.log('TEST hotovo za', secs, 's', u);
     const cz = (res.long_CZ || '').replace(/<[^>]+>/g, ' ').trim();
-    msg.textContent = '✓ Test OK (' + p.STYLE_NAME + '). Krátký CZ: ' + (res.short_CZ || '–');
-    showErr('');
+    msg.textContent = '✓ Test OK za ' + secs + ' s' + cost;
     hideErr();
     console.log('TEST short_CZ:', res.short_CZ, '\nTEST long_CZ:', res.long_CZ);
-    alert('Test proběhl.\n\nKRÁTKÝ CZ:\n' + (res.short_CZ || '–') + '\n\nDLOUHÝ CZ (bez HTML):\n' + cz.slice(0, 600));
+    alert('Test proběhl za ' + secs + ' s.\n\nKRÁTKÝ CZ:\n' + (res.short_CZ || '–') +
+          '\n\nDLOUHÝ CZ (bez HTML):\n' + cz +
+          '\n\n--- HTML pro kontrolu ---\n' + (res.long_CZ || '').slice(0, 400));
   } catch (e) {
-    msg.textContent = '✗ Test selhal.';
+    clearInterval(tick);
+    msg.textContent = '✗ Test selhal po ' + Math.round((Date.now() - t0) / 1000) + ' s.';
     showErr(e.message);
   }
 }
@@ -1389,12 +1412,17 @@ async function runGen() {
   for (let s = 0; s < genGroups.length; s++) {
     if (genStop) break;
     const g = genGroups[s], p = genProducts[g.rep];
+    const _t = Date.now();
+    const _tk = setInterval(() => { msg.textContent = '[' + (s + 1) + '/' + genGroups.length + '] ' + p.STYLE_NAME +
+      ' (' + g.idxs.length + '× barva) … ' + Math.round((Date.now() - _t) / 1000) + ' s'; }, 1000);
     msg.textContent = '[' + (s + 1) + '/' + genGroups.length + '] ' + p.STYLE_NAME + ' (' + g.idxs.length + '× barva) …';
     try {
       const res = await callGenerate(buildPrompt(p));
+      clearInterval(_tk);
       g.idxs.forEach(i => { genResults[i] = res; });     // stejný text na všechny barvy
       done++; streak = 0;
     } catch (e) {
+      clearInterval(_tk);
       err++; streak++;
       if (!firstErr) { firstErr = e.message; showErr(e.message); }
       if (streak >= 3) {                                  // 3× po sobě = systémová chyba, nepálíme dál
