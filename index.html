@@ -207,6 +207,80 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 }
 </style>
 
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style id="kilpiDS">
+/* ══ Kilpi Design System ══ tokeny prevzate 1:1 z Kilpi_Design_System.html (light theme) */
+:root {
+  --bg: #eef5fa;          /* surfaceAlt = podklad aplikace */
+  --surface: #ffffff;     /* karty, panely */
+  --card: #f7fbfe;        /* vnorene plochy */
+  --border: #ccdae3;
+  --border2: #b8cbd8;     /* odvozeno: tmavsi linka pro inputy */
+  --accent: #0e5c78;      /* accentDeep - primarni akce */
+  --accent2: #72cdf4;     /* accent - zvyrazneni, progress */
+  --accent3: #b3403a;     /* odvozeno: DS ma #ff8a80 pro tmave pozadi, na svetlem nema kontrast */
+  --warn: #e0af3b;
+  --text: #162732;
+  --muted: #536068;
+  --dim: #9fb3c0;
+  --ink: #162732;
+}
+body, input, select, button, textarea { font-family: 'Poppins', -apple-system, sans-serif; }
+#header #logo, .tile h3, #genBox h2, #forkBox h4, .gen-step h4, .home-h,
+#homeScreen h1, #prodTitle, .sec-title {
+  font-family: 'Bebas Neue', 'Poppins', sans-serif; letter-spacing: 0.04em;
+}
+/* logo je bily PNG -> na svetlem podkladu ho prebarvime na inkoust */
+#logo img { filter: brightness(0) saturate(100%); opacity: 0.92; }
+
+/* tmave pozadi bylo vsude implicitni -> na svetlem doladit kontrasty */
+body, #main, #sidebar, #prodContent { background: var(--bg); color: var(--text); }
+#header, #langBar { background: var(--surface); border-color: var(--border); }
+.tile, .gen-step, #genBox, #forkBox, #drop, .chip { background: var(--surface); border-color: var(--border); }
+#drop { background: var(--card); }
+.chip { color: var(--muted); }
+.chip b { color: var(--text); }
+
+/* akcni plochy: tmavy akcent + svetly text (nikdy svetla na svetle) */
+.tile.gen .t-go { background: var(--accent); color: #fff; }
+.tile.edit .t-go { background: var(--ink); color: #fff; }
+.g-run, .btn-gen-prod, #genBtn { background: var(--accent); color: #fff; }
+.g-stop { background: var(--accent3); color: #fff; }
+.g-alt { background: var(--card); border: 1px solid var(--border2) !important; color: var(--text); }
+.seas-btn { background: var(--card); border-color: var(--border2); color: var(--muted); }
+.seas-btn.on { border-color: var(--accent); color: var(--accent); background: rgba(114,205,244,0.16); }
+#progFill { background: var(--accent); }
+#progWrap { background: var(--border); }
+#targetTag b { color: var(--accent); }
+
+/* stavove hlasky – JS je barvi inline, prebijeme */
+#statusMsg { color: var(--accent) !important; font-weight: 600; }
+#errBox { background: #fbe3e3 !important; border-color: var(--accent3) !important; }
+#errText { color: #7d2b26 !important; }
+#errHint, .home-h, #progMsg, .tile p, #genBox p, #forkBox p { color: var(--muted); }
+label.chk, #genBox label.chk { color: var(--text) !important; }
+#forkMsg { color: var(--accent); }
+#sampleWarn { color: var(--accent3) !important; }
+
+/* seznam produktu */
+.pitem { border-color: var(--border); }
+.pitem:hover { background: var(--card); }
+.pitem.active { background: rgba(114,205,244,0.18); }
+.lpill { background: var(--card); border: 1px solid var(--border); color: var(--muted); }
+.lpill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+#loadOverlay { background: rgba(238,245,250,0.92); }
+
+/* filtry v hlavicce */
+#header select, #header input[type=search] {
+  background: var(--surface); border: 1px solid var(--border2); color: var(--text);
+  border-radius: 8px; padding: 6px 9px; font-size: 12px; font-family: inherit;
+}
+#backBtn, #configBtn { background: var(--surface); border: 1px solid var(--border2); color: var(--muted); }
+#masterBtn { background: var(--ink); color: #fff; }
+</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style id="genCss">
 #homeScreen, #genScreen { display: none; flex: 1; overflow-y: auto; padding: 40px 24px 60px; }
@@ -286,6 +360,9 @@ label.chk { display: flex; align-items: center; gap: 8px; font-size: 12px; color
   <span id="logo"><span id="logo-area"><img src="data:image/png;base64,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" style="height:32px;vertical-align:middle" alt="KILPI"></span></span></span>
   <input id="searchInput" type="search" placeholder="Hledat produkt…" style="display:none">
   <select id="catFilter" style="display:none"><option value="">Všechny kategorie</option></select>
+  <select id="genderFilter" style="display:none" onchange="renderList()"><option value="">Všechna pohlaví</option><option value="M">♂ Pánské</option><option value="L">♀ Dámské</option><option value="J">△ Dětské</option><option value="U">○ Unisex</option></select>
+  <select id="typeFilter" style="display:none" onchange="renderList()"><option value="">Všechny typy</option><option value="0">Výrobní kusy</option><option value="X">Nadměrné velikosti</option><option value="S">Vzorky</option></select>
+  <select id="copyFilter" style="display:none" onchange="renderList()"><option value="">Popsáno i nepopsáno</option><option value="missing">⚠ Chybí popisek</option><option value="done">✓ Má popisek</option></select>
   <select id="seasonFilter" style="display:none" onchange="changeSeason(this.value)"><option value="S26">S26</option><option value="WS_25-26">WS25-26</option></select>
   <div id="headerRight">
     <span id="editBadge">0 čeká</span>
@@ -406,6 +483,18 @@ label.chk { display: flex; align-items: center; gap: 8px; font-size: 12px; color
 
 <script>
 const LANGS = ['CZ','EN','DE','FR','IT','SK','ES','NL','RO','PL','HU','PT'];
+/* ═══════════════ JAZYKY + FILTRY ═══════════════ */
+const LANG_FLAGS = { CZ:'\u{1F1E8}\u{1F1FF}', EN:'\u{1F1EC}\u{1F1E7}', DE:'\u{1F1E9}\u{1F1EA}', FR:'\u{1F1EB}\u{1F1F7}',
+  IT:'\u{1F1EE}\u{1F1F9}', SK:'\u{1F1F8}\u{1F1F0}', ES:'\u{1F1EA}\u{1F1F8}', NL:'\u{1F1F3}\u{1F1F1}',
+  RO:'\u{1F1F7}\u{1F1F4}', PL:'\u{1F1F5}\u{1F1F1}', HU:'\u{1F1ED}\u{1F1FA}', PT:'\u{1F1F5}\u{1F1F9}' };
+
+// Pohlavi = 2. znak kodu (M/L/J/U), typ = 3. znak (0 vyrobni / X nadmerna / S vzorek).
+// Plati pro stary i novy format MODEL_ID -> zadny novy sloupec nepotrebujeme.
+const genderOf = id => (id || '')[1] || '';
+const typeOf   = id => (id || '')[2] || '';
+const hasCopy  = p => !!((p['short_' + currentLang] || '').trim() || (p['long_' + currentLang] || '').trim());
+function copyFilterActive() { const e = document.getElementById('copyFilter'); return !!(e && e.value); }
+
 const LANG_NAMES = {CZ:'Čeština',EN:'English',DE:'Deutsch',FR:'Français',IT:'Italiano',SK:'Slovenčina',ES:'Español',NL:'Nederlands',RO:'Română',PL:'Polski',HU:'Magyar',PT:'Português'};
 
 // Embedded list data (short descriptions + meta) – 132 KB
@@ -631,12 +720,13 @@ function buildLangBar() {
   LANGS.forEach(l => {
     const b = document.createElement('button');
     b.className = 'lpill' + (l === currentLang ? ' active' : '');
-    b.textContent = l;
+    b.innerHTML = '<span class="flag">' + (LANG_FLAGS[l] || '') + '</span>' + l;
     b.title = LANG_NAMES[l];
     b.dataset.lang = l;
     b.onclick = () => {
       currentLang = l;
       document.querySelectorAll('.lpill').forEach(x => x.classList.toggle('active', x.dataset.lang === l));
+      if (typeof copyFilterActive === 'function' && copyFilterActive()) renderList();
       if (currentId) renderDetail(currentId);
     };
     bar.appendChild(b);
@@ -656,8 +746,15 @@ function buildCatFilter() {
 function getFiltered() {
   const q = document.getElementById('searchInput').value.toLowerCase();
   const cat = document.getElementById('catFilter').value;
+  const gen = (document.getElementById('genderFilter') || {}).value || '';
+  const typ = (document.getElementById('typeFilter') || {}).value || '';
+  const cop = (document.getElementById('copyFilter') || {}).value || '';
   return LIST_DATA.filter(p => {
     if (cat && p.GARMENT !== cat) return false;
+    if (gen && genderOf(p.MODEL_ID) !== gen) return false;
+    if (typ && typeOf(p.MODEL_ID) !== typ) return false;
+    if (cop === 'missing' && hasCopy(p)) return false;
+    if (cop === 'done' && !hasCopy(p)) return false;
     return !q || p.MODEL_ID.toLowerCase().includes(q) ||
       p.STYLE_NAME.toLowerCase().includes(q) ||
       (p['short_' + currentLang] || '').toLowerCase().includes(q);
@@ -1042,7 +1139,7 @@ function _show(id) {
   ['homeScreen','genScreen'].forEach(s => document.getElementById(s).classList.toggle('on', s === id));
   document.getElementById('main').style.display = (id === 'main') ? 'flex' : 'none';
   const editorOnly = id === 'main';
-  ['searchInput','catFilter','seasonFilter','exportBtn'].forEach(x => {
+  ['searchInput','catFilter','genderFilter','typeFilter','copyFilter','seasonFilter','exportBtn'].forEach(x => {
     const e = document.getElementById(x); if (e) e.style.display = editorOnly ? '' : 'none';
   });
   document.getElementById('backBtn').style.display = (id === 'homeScreen') ? 'none' : 'inline-block';
@@ -1061,7 +1158,7 @@ function showEditor() {
 
 /* ═══════════════ GENERATOR ═══════════════ */
 const GEN_MODEL = "claude-sonnet-5";
-const GEN_SYSTEM = "You are a senior copywriter for Kilpi, a Czech outdoor brand inspired by Scandinavian nature. You write e-shop product descriptions in 12 languages that sell without sounding like a sale.\n\nTONE: confident, active, human, premium but accessible. Never fast-fashion, never empty superlatives, never AI cliches (\"vstupte do sveta\", \"objevte kouzlo\", \"perfektni volba pro kazdeho\", \"not just X but Y\").\n\n__TONE__Confident, active, friendly, motivating, professional — never distant, never a sales pitch.\nEach language is NATIVE copy, not a literal translation of the Czech.\n\nLONG DESCRIPTION = valid HTML rendered directly in the e-shop:\n- 2-3 <p> paragraphs: hook (a real trail/weather moment matched to the COLLECTION SEASON, product name in the first sentence) -> technology translated into a benefit -> closing (who it is for).\n- Emphasise hard facts with <strong> (water column, weight, temperature, material). Never <strong> on adjectives.\n- Allowed tags ONLY: <p>, <strong>, <br> (plus <ul>/<li> if the task asks). No attributes, no styles, no markdown.\n- Visible text 600-1000 characters.\n\nSHORT DESCRIPTION = plain text, no HTML, 90-140 chars: product name + one concrete benefit that makes someone click. Not just gender + category + name.\n\nRESPOND ONLY WITH VALID JSON, no code fences, no preamble. Keys exactly:\nshort_CZ, short_EN, short_DE, short_FR, short_IT, short_SK, short_ES, short_NL, short_RO, short_PL, short_HU, short_PT, long_CZ, long_EN, long_DE, long_FR, long_IT, long_SK, long_ES, long_NL, long_RO, long_PL, long_HU, long_PT";
+const GEN_SYSTEM = "You are a senior copywriter for Kilpi, a Czech outdoor brand inspired by Scandinavian nature. You write e-shop product descriptions in 12 languages that sell without sounding like a sale.\n\nTONE: confident, active, human, premium but accessible. Never fast-fashion, never empty superlatives, never AI cliches (\"vstupte do sveta\", \"objevte kouzlo\", \"perfektni volba pro kazdeho\", \"not just X but Y\").\n\nTERMINOLOGY - translate specs correctly, never leave English jargon or invent a meaning:\n- SNOW SKIRT = snezny/snehovy pas (CZ: snezny pas). It is an inner waist band, NOT anything to do with the hem cord.\n- SNOW GAITERS (cuffs) = vnitrni navleky na rukavech. Never write 'snowgaitry'.\n- TAPED SEAMS = podlepene svy (CZ). Never 'zalepene svy'.\n- WATER COLLUMN = vodni sloupec, in mm.  MOISTURE PERMEABILITY = prodysnost, always with the unit g/m2/24 h.\n- BOTTOM HEM ADJUSTABLE WITH CORD = spodni lem stahovatelny snurkou.\n- PADDING SYNTHETIC = synteticka izolace.  2 LAYER = dvouvrstva.\nIf a spec is not in the list above, describe its function in plain language. Never leave an English term untranslated.\n\nGRAMMATICAL AGREEMENT (critical):\nThe style name (DENVER-JB, NINJA-U...) is a NAME, not a noun. Adjectives and participles must agree with the PRODUCT NOUN of the category, not with the name. Czech: 'bunda' is feminine -> 'DENVER-JB je stavena', NEVER 'stavany'. Same rule in every language with grammatical gender. When in doubt, name the product noun in the sentence.\n\nREGISTER: use the standard retail words a parent would search for. CZ: 'chlapecka' / 'divci' / 'detska', never diminutives like 'klucici', 'klucina', 'holcicka'.\n\n__TONE__Confident, active, friendly, motivating, professional — never distant, never a sales pitch.\nEach language is NATIVE copy, not a literal translation of the Czech.\n\nLONG DESCRIPTION = valid HTML rendered directly in the e-shop:\n- 2-3 <p> paragraphs: hook (a real trail/weather moment matched to the COLLECTION SEASON, product name in the first sentence) -> technology translated into a benefit -> closing (who it is for).\n- Emphasise hard facts with <strong> (water column, weight, temperature, material). Never <strong> on adjectives.\n- Allowed tags ONLY: <p>, <strong>, <br> (plus <ul>/<li> if the task asks). No attributes, no styles, no markdown.\n- Visible text 600-1000 characters.\n\nSHORT DESCRIPTION = plain text, no HTML, 90-140 chars: product name + one concrete benefit that makes someone click. Not just gender + category + name.\n\nRESPOND ONLY WITH VALID JSON, no code fences, no preamble. Keys exactly:\nshort_CZ, short_EN, short_DE, short_FR, short_IT, short_SK, short_ES, short_NL, short_RO, short_PL, short_HU, short_PT, long_CZ, long_EN, long_DE, long_FR, long_IT, long_SK, long_ES, long_NL, long_RO, long_PL, long_HU, long_PT";
 let genSeason = 'summer', genProducts = [], genGroups = [], genResults = {}, genStop = false, genRunning = false;
 let _raw = null, _fname = '';
 
