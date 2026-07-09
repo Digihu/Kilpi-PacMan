@@ -443,7 +443,9 @@ label.chk { display: flex; align-items: center; gap: 8px; font-size: 12px; color
         <button class="g-btn g-run" id="runBtn" disabled onclick="runGen()">▶ Spustit generování</button>
         <button class="g-btn g-stop" id="stopBtn" style="display:none" onclick="genStop=true">■ Stop</button>
         <button class="g-btn g-alt" id="testBtn" disabled onclick="testOne()">🧪 Test 1 volání</button>
+        <button class="g-btn g-alt" id="codeBtn" onclick="setGenCode()">🔒 Kód</button>
       </div>
+      <div id="codeState" style="font-size:11px;margin-top:8px;color:var(--muted)"></div>
       <div id="progWrap"><div id="progFill"></div></div>
       <div id="progMsg">Nejprve nahrajte podklad.</div>
       <div id="errBox" style="display:none;margin-top:12px;background:rgba(240,74,138,0.07);border:1px solid var(--accent3);border-radius:8px;padding:12px 14px">
@@ -1145,7 +1147,7 @@ function _show(id) {
   document.getElementById('backBtn').style.display = (id === 'homeScreen') ? 'none' : 'inline-block';
 }
 function showHome() { _show('homeScreen'); }
-function showGen() { _show('genScreen'); refreshTarget(); }
+function showGen() { _show('genScreen'); refreshTarget(); renderCodeState(); }
 let _editorLoaded = false;
 function showEditor() {
   _show('main');
@@ -1156,9 +1158,35 @@ function showEditor() {
   }
 }
 
+/* ═══════════════ PŘÍSTUPOVÝ KÓD (placené akce) ═══════════════ */
+// Generovani a zakladani listu stoji penize -> chranime je sdilenym kodem.
+// Cteni a editace popisku kod nepotrebuji.
+const CODE_KEY = 'kilpi_gen_code';
+const getCode = () => localStorage.getItem(CODE_KEY) || '';
+function renderCodeState() {
+  const el = document.getElementById('codeState'); if (!el) return;
+  const c = getCode();
+  el.innerHTML = c
+    ? '✓ Kód uložen. <a href="#" onclick="clearGenCode();return false" style="color:var(--muted)">Změnit</a>'
+    : '⚠ Bez kódu nelze generovat ani zakládat list. Kód vám dá správce Pac-Mana.';
+  el.style.color = c ? 'var(--accent)' : 'var(--accent3)';
+}
+function setGenCode() {
+  const c = prompt('Přístupový kód pro generování:', getCode());
+  if (c === null) return;
+  const v = c.trim();
+  if (v) localStorage.setItem(CODE_KEY, v); else localStorage.removeItem(CODE_KEY);
+  renderCodeState();
+}
+function clearGenCode() { localStorage.removeItem(CODE_KEY); renderCodeState(); }
+// pri chybe kodu ho zapomeneme, at si clovek muze zadat jiny
+function handleCodeError(msg) {
+  if (/kód|kod|unauthor/i.test(msg)) { localStorage.removeItem(CODE_KEY); renderCodeState(); }
+}
+
 /* ═══════════════ GENERATOR ═══════════════ */
 const GEN_MODEL = "claude-sonnet-5";
-const GEN_SYSTEM = "You are a senior copywriter for Kilpi, a Czech outdoor brand inspired by Scandinavian nature. You write e-shop product descriptions in 12 languages that sell without sounding like a sale.\n\nTONE: confident, active, human, premium but accessible. Never fast-fashion, never empty superlatives, never AI cliches (\"vstupte do sveta\", \"objevte kouzlo\", \"perfektni volba pro kazdeho\", \"not just X but Y\").\n\nTERMINOLOGY - translate specs correctly, never leave English jargon or invent a meaning:\n- SNOW SKIRT = snezny/snehovy pas (CZ: snezny pas). It is an inner waist band, NOT anything to do with the hem cord.\n- SNOW GAITERS (cuffs) = vnitrni navleky na rukavech. Never write 'snowgaitry'.\n- TAPED SEAMS = podlepene svy (CZ). Never 'zalepene svy'.\n- WATER COLLUMN = vodni sloupec, in mm.  MOISTURE PERMEABILITY = prodysnost, always with the unit g/m2/24 h.\n- BOTTOM HEM ADJUSTABLE WITH CORD = spodni lem stahovatelny snurkou.\n- PADDING SYNTHETIC = synteticka izolace.  2 LAYER = dvouvrstva.\nIf a spec is not in the list above, describe its function in plain language. Never leave an English term untranslated.\n\nGRAMMATICAL AGREEMENT (critical):\nThe style name (DENVER-JB, NINJA-U...) is a NAME, not a noun. Adjectives and participles must agree with the PRODUCT NOUN of the category, not with the name. Czech: 'bunda' is feminine -> 'DENVER-JB je stavena', NEVER 'stavany'. Same rule in every language with grammatical gender. When in doubt, name the product noun in the sentence.\n\nREGISTER: use the standard retail words a parent would search for. CZ: 'chlapecka' / 'divci' / 'detska', never diminutives like 'klucici', 'klucina', 'holcicka'.\n\n__TONE__Confident, active, friendly, motivating, professional — never distant, never a sales pitch.\nEach language is NATIVE copy, not a literal translation of the Czech.\n\nLONG DESCRIPTION = valid HTML rendered directly in the e-shop:\n- 2-3 <p> paragraphs: hook (a real trail/weather moment matched to the COLLECTION SEASON, product name in the first sentence) -> technology translated into a benefit -> closing (who it is for).\n- Emphasise hard facts with <strong> (water column, weight, temperature, material). Never <strong> on adjectives.\n- Allowed tags ONLY: <p>, <strong>, <br> (plus <ul>/<li> if the task asks). No attributes, no styles, no markdown.\n- Visible text 600-1000 characters.\n\nSHORT DESCRIPTION = plain text, no HTML, 90-140 chars: product name + one concrete benefit that makes someone click. Not just gender + category + name.\n\nRESPOND ONLY WITH VALID JSON, no code fences, no preamble. Keys exactly:\nshort_CZ, short_EN, short_DE, short_FR, short_IT, short_SK, short_ES, short_NL, short_RO, short_PL, short_HU, short_PT, long_CZ, long_EN, long_DE, long_FR, long_IT, long_SK, long_ES, long_NL, long_RO, long_PL, long_HU, long_PT";
+const GEN_SYSTEM = "You are a senior copywriter for Kilpi, a Czech outdoor brand inspired by Scandinavian nature. You write e-shop product descriptions in 12 languages that sell without sounding like a sale.\n\nTONE: confident, active, human, premium but accessible. Never fast-fashion, never empty superlatives, never AI cliches (\"vstupte do sveta\", \"objevte kouzlo\", \"perfektni volba pro kazdeho\", \"not just X but Y\").\n\nTERMINOLOGY - translate specs correctly, never leave English jargon or invent a meaning.\nThe Czech equivalents below are written WITH full diacritics. Reproduce them exactly as written; never strip hacky and carky. The same applies to every word you write in Czech, Slovak, Polish, Romanian and Hungarian - always use correct native diacritics.\n- SNOW SKIRT -> CZ: „sněžný pás“. It is an inner waist band, NOT the hem cord.\n- SNOW GAITERS (cuffs) -> CZ: „vnitřní návleky na rukávech“. Never „snowgaitry“.\n- TAPED SEAMS -> CZ: „podlepené švy“. Never „zalepené“.\n- WATER COLLUMN -> CZ: „vodní sloupec“, in mm.\n- MOISTURE PERMEABILITY -> CZ: „prodyšnost“, always with the unit g/m²/24 h.\n- BOTTOM HEM ADJUSTABLE WITH CORD -> CZ: „spodní lem stahovatelný šňůrkou“.\n- PADDING SYNTHETIC -> CZ: „syntetická izolace“.  2 LAYER -> „dvouvrstvá“.\n- SKI PASS POCKET -> CZ: „kapsa na skipas“.  HIGH COLLAR -> „vysoký límec“.\nIf a spec is not listed, describe its function in plain native language. Never leave an English term untranslated.\n\nPUNCTUATION: every sentence ends with a full stop. Never leave two spaces in a row. Do not put a space before a comma or a full stop. Numbers keep a non-breaking-style spacing as in „10 000 mm“.\n\nGRAMMATICAL AGREEMENT (critical):\nThe style name (DENVER-JB, NINJA-U...) is a NAME, not a noun. Adjectives and participles must agree with the PRODUCT NOUN of the category, not with the name. Czech: „bunda“ is feminine -> „DENVER-JB je stavená“, NEVER „stavený“. Same rule in every language with grammatical gender. When in doubt, name the product noun in the sentence.\n\nREGISTER: use the standard retail words a parent would search for. CZ: „chlapecká“ / „dívčí“ / „dětská“, never diminutives like „klučičí“, „klučina“, „holky“. For kids’ items address the parent neutrally („vaše dítě“), do not assume the child is a son or a daughter.\n\n__TONE__Confident, active, friendly, motivating, professional — never distant, never a sales pitch.\nEach language is NATIVE copy, not a literal translation of the Czech.\n\nLONG DESCRIPTION = valid HTML rendered directly in the e-shop:\n- 2-3 <p> paragraphs: hook (a real trail/weather moment matched to the COLLECTION SEASON, product name in the first sentence) -> technology translated into a benefit -> closing (who it is for).\n- Emphasise hard facts with <strong> (water column, weight, temperature, material). Never <strong> on adjectives.\n- Allowed tags ONLY: <p>, <strong>, <br> (plus <ul>/<li> if the task asks). No attributes, no styles, no markdown.\n- Visible text 600-1000 characters.\n\nSHORT DESCRIPTION = plain text, no HTML, 90-140 chars: product name + one concrete benefit that makes someone click. Not just gender + category + name.\n\nRESPOND ONLY WITH VALID JSON, no code fences, no preamble. Keys exactly:\nshort_CZ, short_EN, short_DE, short_FR, short_IT, short_SK, short_ES, short_NL, short_RO, short_PL, short_HU, short_PT, long_CZ, long_EN, long_DE, long_FR, long_IT, long_SK, long_ES, long_NL, long_RO, long_PL, long_HU, long_PT";
 let genSeason = 'summer', genProducts = [], genGroups = [], genResults = {}, genStop = false, genRunning = false;
 let _raw = null, _fname = '';
 
@@ -1419,10 +1447,11 @@ function buildPrompt(p) {
 // Přes Apps Script proxy: klíč zůstává na serveru, POST jako text/plain (žádný CORS preflight).
 async function callGenerate(prompt) {
   if (!scriptUrl) throw new Error('Není nastavený backend (⚙ Backend).');
+  if (!getCode()) throw new Error('Chybí přístupový kód pro generování (🔒 Kód).');
   const r = await fetch(scriptUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ action: 'generate', model: GEN_MODEL, effort: 'low', system: genSystem(), messages: [{ role: 'user', content: prompt }] })
+    body: JSON.stringify({ action: 'generate', code: getCode(), model: GEN_MODEL, effort: 'low', system: genSystem(), messages: [{ role: 'user', content: prompt }] })
   });
   const txt = await r.text();
   if (!r.ok) throw new Error('HTTP ' + r.status + ' od Apps Scriptu: ' + txt.slice(0, 160));
@@ -1445,7 +1474,8 @@ function showErr(e) {
   document.getElementById('errText').textContent = e;
   const h = document.getElementById('errHint');
   let hint = '';
-  if (/není nastaven|API_KEY/i.test(e)) hint = 'Ve Script Properties chybí ANTHROPIC_API_KEY. Apps Script → ozubené kolo → Script Properties.';
+  if (/přístupový kód|GEN_CODE/i.test(e)) hint = 'Generování je chráněné kódem, protože stojí peníze. Kliknout na “🔒 Kód” a zadat správný.';
+  else if (/není nastaven|API_KEY/i.test(e)) hint = 'Ve Script Properties chybí ANTHROPIC_API_KEY. Apps Script → ozubené kolo → Script Properties.';
   else if (/unknown action|neznámá akce/i.test(e)) hint = 'Backend nemá akci "generate" – nasadili jste starou verzi Code.gs. Deploy → Manage deployments → Edit → New version.';
   else if (/HTTP 401|authentication/i.test(e)) hint = 'API klíč je neplatný nebo vypršel.';
   else if (/HTTP 404|not_found|model/i.test(e)) hint = 'Neznámý model. Zkontrolujte GEN_MODEL v index.html.';
@@ -1494,7 +1524,7 @@ async function testOne() {
   } catch (e) {
     clearInterval(tick);
     msg.textContent = '✗ Test selhal po ' + Math.round((Date.now() - t0) / 1000) + ' s.';
-    showErr(e.message);
+    showErr(e.message); handleCodeError(e.message);
   }
 }
 
@@ -1521,7 +1551,7 @@ async function runGen() {
     } catch (e) {
       clearInterval(_tk);
       err++; streak++;
-      if (!firstErr) { firstErr = e.message; showErr(e.message); }
+      if (!firstErr) { firstErr = e.message; showErr(e.message); handleCodeError(e.message); }
       if (streak >= 3) {                                  // 3× po sobě = systémová chyba, nepálíme dál
         msg.textContent = '⛔ Zastaveno po 3 chybách za sebou. Oprav příčinu a spusť znovu.';
         genStop = true; break;
@@ -1563,12 +1593,12 @@ async function pushNewSheet() {
   try {
     const r = await fetch(scriptUrl, {
       method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'createSheet', name: name, rows: rows })
+      body: JSON.stringify({ action: 'createSheet', code: getCode(), name: name, rows: rows })
     });
     const d = await r.json();
     if (!d.ok) throw new Error(d.error || 'neznámá chyba');
     fm.textContent = '✓ Vytvořen list "' + d.sheet + '" – ' + d.rows + ' řádků zapsáno.';
-  } catch (e) { fm.textContent = '⚠ ' + e.message; }
+  } catch (e) { fm.textContent = '⚠ ' + e.message; handleCodeError(e.message); }
 }
 
 function downloadXlsx() {
