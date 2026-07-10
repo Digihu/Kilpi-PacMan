@@ -442,6 +442,13 @@ label.chk { display: flex; align-items: center; gap: 8px; font-size: 12px; color
       <label class="chk"><input type="checkbox" id="skipSamples" checked onchange="reparse()"> Přeskočit vzorky (TYP KARTY = S) &mdash; doporučeno</label>
       <div id="sampleWarn" style="display:none;font-size:11px;color:var(--accent3);margin-top:6px;line-height:1.5"></div>
       <label class="chk"><input type="checkbox" id="useUl"> V dlouhém popisu použít i &lt;ul&gt; seznam klíčových vlastností</label>
+      <label class="chk"><input type="checkbox" id="onlyMissing" checked onchange="refreshPlan()"> Generovat jen chybějící (přeskočit styly, které už v cílovém listu mají popisek)</label>
+      <div style="margin-top:10px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:5px">Nebo jen konkrétní styly (oddělte čárkou, nechte prázdné pro všechny):</div>
+        <input id="onlyStyles" type="text" placeholder="např. DEXEN-U, DENVER-JB" oninput="refreshPlan()"
+               style="width:100%;max-width:420px;background:#fff;border:1.5px solid var(--border2);border-radius:8px;padding:9px 11px;font-size:12.5px;font-family:inherit;color:var(--text)">
+      </div>
+      <div id="planMsg" style="margin-top:10px;font-size:11.5px;font-family:'JetBrains Mono',monospace;color:var(--muted);min-height:15px"></div>
     </div>
 
     <div class="gen-step">
@@ -1197,7 +1204,7 @@ function renderCodeState() {
 }
 // tlacitka jsou aktivni jen kdyz je podklad I heslo
 function refreshRunButtons() {
-  const ready = !!(genGroups.length && getCode());
+  const ready = !!(genGroups.length && getCode() && planGroups().length);
   ['runBtn','testBtn'].forEach(id => { const e = document.getElementById(id); if (e) e.disabled = !ready; });
 }
 // heslo overime hned proti backendu -> clovek se chybu dozvi ted, ne az u prvniho volani
@@ -1384,18 +1391,20 @@ function parseRaw() {
       });
       // 2) dedup na modelobarvu (vstup je EAN x velikost)
       const seen = new Map();
-      rows.forEach(r => { const k = _norm(r[iMC]) || _norm(r[iStyle]); if (!seen.has(k)) seen.set(k, r); });
+      const mcOf = r => iMC >= 0 ? _norm(r[iMC]) : (iModel >= 0 ? _norm(r[iModel]) : _norm(r[iStyle]));
+      rows.forEach(r => { const k = mcOf(r) || _norm(r[iStyle]); if (!seen.has(k)) seen.set(k, r); });
       const mbs = [...seen.values()];
 
       genProducts = mbs.map(r => {
         const spec = [];
         specIdx.forEach(c => { const v = _norm(r[c.i]); if (v && v !== '0' && _up(v) !== 'NO') spec.push(_up(c.label) + ': ' + v); });
-        const code = iModel >= 0 ? _up(r[iModel]) : _up(r[iMC]).slice(0, 8);
+        const mcVal = iMC >= 0 ? _norm(r[iMC]) : (iModel >= 0 ? _norm(r[iModel]) : _norm(r[iStyle]));
+        const code = iModel >= 0 ? _up(r[iModel]) : _up(mcVal).slice(0, 8);
         const iGen = idxOf(hdr, ['GENDER']);
         const gRaw = iGen >= 0 ? _up(r[iGen]) : (code[1] || '');
         return {
-          MODEL_ID: _norm(r[iMC]),
-          MODEL: iModel >= 0 ? _norm(r[iModel]) : _norm(r[iMC]).slice(0, 8),
+          MODEL_ID: mcVal,
+          MODEL: iModel >= 0 ? _norm(r[iModel]) : mcVal.slice(0, 8),
           STYLE_NAME: _norm(r[iStyle]),
           GARMENT: iGar >= 0 ? _norm(r[iGar]) : '',
           COLOR: iCol >= 0 ? _norm(r[iCol]) : '',
@@ -1455,7 +1464,7 @@ function parseRaw() {
         (genProducts.filter(p => p._badCode).length ? '<div class="chip" style="border-color:var(--accent3)">⚠ Nevalidní kód: <b>' + genProducts.filter(p => p._badCode).length + '</b></div>' : '') +
         (ds ? '<div class="chip">Sezóna z podkladu: <b>' + targetSheetName() + '</b></div>' : '') +
         '<div class="chip" style="border-color:var(--accent2)">Volání API: <b>' + genGroups.length + '</b></div>';
-      refreshRunButtons();
+      refreshRunButtons(); refreshPlan();
       msg.textContent = 'Připraveno: ' + genGroups.length + ' volání → ' + genProducts.length + ' modelobarev.';
     } catch (err) {
       msg.textContent = '⚠ ' + err.message;
@@ -1536,7 +1545,8 @@ async function testOne() {
   if (!genGroups.length) return;
   hideErr();
   const msg = document.getElementById('progMsg');
-  const p = genProducts[genGroups[0].rep];
+  const pl = planGroups(); if (!pl.length) { document.getElementById('progMsg').textContent = '⚠ Není co testovat.'; return; }
+  const p = genProducts[pl[0].rep];
   const t0 = Date.now();
   const tick = setInterval(() => {
     msg.textContent = '🧪 Testuji jedno volání: ' + p.STYLE_NAME + ' … ' + Math.round((Date.now() - t0) / 1000) + ' s';
@@ -1569,21 +1579,76 @@ async function testOne() {
   }
 }
 
+/* ── Rozsah generovani ──────────────────────────────────────────
+   1) rucni vyber stylu prebiji vse
+   2) "jen chybejici" = precte cilovy list a preskoci styly, ktere uz maji popisek
+   Diky tomu jde dogenerovat jediny spadly styl, aniz bychom platili zbylych 207. */
+let _existing = null;          // Set MODEL_ID, ktere uz maji popisek v cilovem listu
+
+async function loadExisting() {
+  const sheet = targetSheetName();
+  if (!scriptUrl) return null;
+  try {
+    const r = await fetch(scriptUrl + '?action=getAll&sheet=' + encodeURIComponent(sheet));
+    const d = await r.json();
+    if (!d.products) return null;
+    const set = new Set();
+    d.products.forEach(p => {
+      const has = LANGS.some(l => (p['short_' + l] || '').trim() || (p['long_' + l] || '').trim());
+      if (has) set.add(String(p.MODEL_ID).trim());
+    });
+    return set;
+  } catch (e) { return null; }   // list zatim neexistuje
+}
+
+function planGroups() {
+  const raw = (document.getElementById('onlyStyles').value || '').trim();
+  if (raw) {
+    const want = raw.split(',').map(x => x.trim().toUpperCase()).filter(Boolean);
+    return genGroups.filter(g => want.includes(genProducts[g.rep].STYLE_NAME.toUpperCase()));
+  }
+  if (document.getElementById('onlyMissing').checked && _existing && _existing.size) {
+    return genGroups.filter(g => !g.idxs.every(i => _existing.has(genProducts[i].MODEL_ID)));
+  }
+  return genGroups.slice();
+}
+
+async function refreshPlan() {
+  const el = document.getElementById('planMsg');
+  if (!genGroups.length) { el.textContent = ''; return; }
+  const raw = (document.getElementById('onlyStyles').value || '').trim();
+  if (!raw && document.getElementById('onlyMissing').checked) {
+    el.textContent = 'Zjišťuji, co už je v listu ' + targetSheetName() + ' …';
+    _existing = await loadExisting();
+  }
+  const plan = planGroups();
+  const mb = plan.reduce((a, g) => a + g.idxs.length, 0);
+  if (raw && !plan.length) { el.textContent = '⚠ Žádný styl neodpovídá zadání.'; el.style.color = 'var(--accent3)'; }
+  else {
+    el.style.color = 'var(--muted)';
+    el.textContent = 'Vygeneruje se ' + plan.length + ' z ' + genGroups.length + ' skupin → ' + mb + ' modelobarev'
+      + (_existing && _existing.size ? '  (v listu ' + targetSheetName() + ' už má popisek ' + _existing.size + ' modelobarev)' : '');
+  }
+  refreshRunButtons();
+}
+
 async function runGen() {
   if (genRunning || !genGroups.length) return;
+  const plan = planGroups();
+  if (!plan.length) { document.getElementById('progMsg').textContent = '⚠ Není co generovat.'; return; }
   genRunning = true; genStop = false; hideErr();
   document.getElementById('runBtn').style.display = 'none';
   document.getElementById('stopBtn').style.display = 'inline-block';
   document.getElementById('forkBox').style.display = 'none';
   const fill = document.getElementById('progFill'), msg = document.getElementById('progMsg');
   let done = 0, err = 0, streak = 0, firstErr = '';
-  for (let s = 0; s < genGroups.length; s++) {
+  for (let s = 0; s < plan.length; s++) {
     if (genStop) break;
-    const g = genGroups[s], p = genProducts[g.rep];
+    const g = plan[s], p = genProducts[g.rep];
     const _t = Date.now();
-    const _tk = setInterval(() => { msg.textContent = '[' + (s + 1) + '/' + genGroups.length + '] ' + p.STYLE_NAME +
+    const _tk = setInterval(() => { msg.textContent = '[' + (s + 1) + '/' + plan.length + '] ' + p.STYLE_NAME +
       ' (' + g.idxs.length + '× barva) … ' + Math.round((Date.now() - _t) / 1000) + ' s'; }, 1000);
-    msg.textContent = '[' + (s + 1) + '/' + genGroups.length + '] ' + p.STYLE_NAME + ' (' + g.idxs.length + '× barva) …';
+    msg.textContent = '[' + (s + 1) + '/' + plan.length + '] ' + p.STYLE_NAME + ' (' + g.idxs.length + '× barva) …';
     try {
       const res = await callGenerate(buildPrompt(p));
       clearInterval(_tk);
@@ -1598,7 +1663,7 @@ async function runGen() {
         genStop = true; break;
       }
     }
-    fill.style.width = Math.round((s + 1) / genGroups.length * 100) + '%';
+    fill.style.width = Math.round((s + 1) / plan.length * 100) + '%';
     await new Promise(r => setTimeout(r, 250));
   }
   genRunning = false;
