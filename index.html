@@ -278,6 +278,12 @@ label.chk, #genBox label.chk { color: var(--text) !important; }
   background: var(--surface); border: 1px solid var(--border2); color: var(--text);
   border-radius: 8px; padding: 6px 9px; font-size: 12px; font-family: inherit;
 }
+/* jazykove pilulky: hranate jako zbytek UI (DS pouziva 8-16px, 999px jen pro odznaky) */
+.lpill { border-radius: 8px !important; padding: 6px 11px !important; display: inline-flex; align-items: center; gap: 7px; font-weight: 600; }
+.lpill .flag { font-size: 14px; line-height: 1; }
+/* Pac-Man byl limetkovy z tmaveho motivu -> do palety */
+#maze-pac { background: var(--accent) !important; }
+#maze-msg { color: var(--muted); }
 #backBtn, #configBtn { background: var(--surface); border: 1px solid var(--border2); color: var(--muted); }
 #masterBtn { background: var(--ink); color: #fff; }
 </style>
@@ -366,10 +372,10 @@ label.chk { display: flex; align-items: center; gap: 8px; font-size: 12px; color
 <div id="header">
   <span id="logo"><span id="logo-area"><img src="data:image/png;base64,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" style="height:32px;vertical-align:middle" alt="KILPI"></span></span></span>
   <input id="searchInput" type="search" placeholder="Hledat produkt…" style="display:none">
-  <select id="catFilter" style="display:none"><option value="">Všechny kategorie</option></select>
-  <select id="genderFilter" style="display:none" onchange="renderList()"><option value="">Všechna pohlaví</option><option value="M">♂ Pánské</option><option value="L">♀ Dámské</option><option value="J">△ Dětské</option><option value="U">○ Unisex</option></select>
-  <select id="typeFilter" style="display:none" onchange="renderList()"><option value="">Všechny typy</option><option value="0">Výrobní kusy</option><option value="X">Nadměrné velikosti</option><option value="S">Vzorky</option></select>
-  <select id="copyFilter" style="display:none" onchange="renderList()"><option value="">Popsáno i nepopsáno</option><option value="missing">⚠ Chybí popisek</option><option value="done">✓ Má popisek</option></select>
+  <select id="catFilter" style="display:none"><option value="">Kategorie: vše</option></select>
+  <select id="genderFilter" style="display:none" onchange="renderList()"><option value="">Pohlaví: vše</option><option value="M">♂ Pánské</option><option value="L">♀ Dámské</option><option value="J">△ Dětské</option><option value="U">○ Unisex</option></select>
+  <select id="typeFilter" style="display:none" onchange="renderList()"><option value="">Typ: vše</option><option value="0">Výrobní kusy</option><option value="X">Nadměrné velikosti</option><option value="S">Vzorky</option></select>
+  <select id="copyFilter" style="display:none" onchange="renderList()"><option value="">Popisky: vše</option><option value="missing">⚠ Chybí popisek</option><option value="done">✓ Má popisek</option></select>
   <select id="seasonFilter" style="display:none" onchange="changeSeason(this.value)"><option value="S26">S26</option><option value="WS_25-26">WS25-26</option></select>
   <div id="headerRight">
     <span id="editBadge">0 čeká</span>
@@ -466,7 +472,7 @@ label.chk { display: flex; align-items: center; gap: 8px; font-size: 12px; color
 
       <div id="runRow" style="margin-top:14px">
         <button class="g-btn g-run" id="runBtn" disabled onclick="runGen()">▶ Spustit generování</button>
-        <button class="g-btn g-stop" id="stopBtn" style="display:none" onclick="genStop=true">■ Stop</button>
+        <button class="g-btn g-stop" id="stopBtn" style="display:none" onclick="stopGen()">■ Stop</button>
         <button class="g-btn g-alt" id="testBtn" disabled onclick="testOne()">🧪 Test 1 volání</button>
       </div>
       <div id="progWrap"><div id="progFill"></div></div>
@@ -483,6 +489,7 @@ label.chk { display: flex; align-items: center; gap: 8px; font-size: 12px; color
       <p>Můžete je zařadit rovnou do Master Sheetu jako nový list, nebo si stáhnout soubor a zařadit je později.</p>
       <div class="f-btns">
         <button class="g-btn g-run" onclick="pushNewSheet()">📑 Vytvořit nový list v Master Sheetu</button>
+        <button class="g-btn g-run" onclick="pushExisting()">➕ Doplnit do existujícího listu</button>
         <button class="g-btn g-alt" onclick="downloadXlsx()">⬇ Stáhnout .xlsx</button>
       </div>
       <div id="forkMsg"></div>
@@ -531,7 +538,7 @@ let currentLang = 'CZ';
 let currentId = null;
 let currentEditField = null;
 let scriptUrl = localStorage.getItem('kilpi_script_url') || '';
-let currentSheet = 'S26';
+let currentSheet = '';
 let expandedGroups = {};
 let saveTimer = null;
 
@@ -572,7 +579,10 @@ function changeSeason(sheet) {
   currentId = null;
   expandedGroups = {};
   const empty = document.getElementById('emptyState');
-  if (empty) { empty.style.display = 'flex'; const d = empty.querySelectorAll('div')[1]; if(d) d.textContent = 'Načítám sezónu…'; }
+  if (empty) empty.style.display = 'flex';
+  if (!sheet) { LIST_DATA.length = 0; renderList(); setEmptyMsg('Nejdřív vyberte sezónu nahoře vpravo.'); return; }
+  const _mm = document.getElementById('maze-msg');
+  if (_mm) _mm.textContent = 'Načítám sezónu…';
   const content = document.getElementById('prodContent');
   if (content) content.style.display = 'none';
   const pl = document.getElementById('sidebar');
@@ -600,17 +610,27 @@ async function loadFromSheets() {
   setProgress(10);
   setLoadMsg('Načítám data ze Sheets…');
   try {
-    const r = await fetch(scriptUrl + '?action=getAll&sheet=' + encodeURIComponent(currentSheet));
-    const d = await r.json();
-    if (d.error) throw new Error(d.error);
+    const _sheets = (currentSheet === '__ALL__') ? SHEET_NAMES : [currentSheet];
+    LIST_DATA.length = 0; longData = {};
+    let _all = [];
+    for (const _sn of _sheets) {
+      setLoadMsg('Načítám ' + _sn + '…');
+      const r = await fetch(scriptUrl + '?action=getAll&sheet=' + encodeURIComponent(_sn));
+      const d0 = await r.json();
+      if (d0.error) throw new Error(d0.error);
+      (d0.products || []).forEach(p => { p._sheet = _sn; });
+      _all = _all.concat(d0.products || []);
+    }
+    const d = { products: _all };
     setProgress(70);
     setLoadMsg('Zpracovávám data…');
     d.products.forEach(p => {
       let lp = LIST_DATA.find(x => x.MODEL_ID === p.MODEL_ID);
       if (!lp) {
-        lp = { MODEL_ID: p.MODEL_ID, STYLE_NAME: p.STYLE_NAME || '', GARMENT: p.GARMENT || '' };
+        lp = { MODEL_ID: p.MODEL_ID, STYLE_NAME: p.STYLE_NAME || '', GARMENT: p.GARMENT || '', _sheet: p._sheet };
         LIST_DATA.push(lp);
       }
+      lp._sheet = p._sheet || lp._sheet;
       Object.keys(p).filter(k => k.startsWith('short_')).forEach(k => { lp[k] = p[k]; });
       if (!longData[p.MODEL_ID]) longData[p.MODEL_ID] = {};
       Object.keys(p).filter(k => k.startsWith('long_')).forEach(k => {
@@ -663,7 +683,9 @@ async function saveToSheets(modelId, field, value) {
     // Use TextEncoder for safe base64 encoding of unicode/HTML content
     const bytes = new TextEncoder().encode(value);
     const b64 = btoa(String.fromCharCode(...bytes));
-    const url = scriptUrl + '?action=updateCell&sheet=' + encodeURIComponent(currentSheet) + '&modelId=' + encodeURIComponent(modelId) + '&field=' + encodeURIComponent(field) + '&value=' + encodeURIComponent(b64);
+    const _p = LIST_DATA.find(x => x.MODEL_ID === modelId);
+    const _sheet = (_p && _p._sheet) ? _p._sheet : currentSheet;
+    const url = scriptUrl + '?action=updateCell&sheet=' + encodeURIComponent(_sheet) + '&modelId=' + encodeURIComponent(modelId) + '&field=' + encodeURIComponent(field) + '&value=' + encodeURIComponent(b64);
     const r = await fetch(url);
     const d = await r.json();
     if (d.ok) {
@@ -789,6 +811,7 @@ function getFiltered() {
 function isMaster(id) { return id.length === 8; }
 
 function renderList() {
+  if (typeof resetEmptyState === 'function') resetEmptyState();
   const sidebar = document.getElementById('sidebar');
   const filtered = getFiltered();
   const masters = filtered.filter(p => isMaster(p.MODEL_ID));
@@ -1171,14 +1194,47 @@ function _show(id) {
 }
 function showHome() { _show('homeScreen'); }
 function showGen() { _show('genScreen'); refreshTarget(); renderCodeState(); }
-let _editorLoaded = false;
-function showEditor() {
+async function showEditor() {
   _show('main');
-  if (!_editorLoaded) {
-    _editorLoaded = true;
-    document.getElementById('loadOverlay').style.display = 'flex';
-    loadFromSheets();
-  }
+  document.getElementById('loadOverlay').style.display = 'none';
+  await loadSheetList();            // pokazde znovu -> nove vygenerovany list se objevi sam
+  if (!currentSheet) setEmptyMsg('Nejdřív vyberte sezónu nahoře vpravo.');
+}
+
+function setEmptyMsg(t) {
+  const mm = document.getElementById('maze-msg');
+  if (mm) mm.textContent = t;
+  const empty = document.getElementById('emptyState');
+  if (empty) empty.style.display = 'flex';
+  const c = document.getElementById('prodContent');
+  if (c) c.style.display = 'none';
+}
+
+/* Sezony nejsou zadratovane: ctou se z Master Sheetu (action=meta).
+   Diky tomu se nove vygenerovany list (WS_26-27) objevi ve filtru sam. */
+const ALL_SHEETS = '__ALL__';
+let SHEET_NAMES = [];
+async function loadSheetList() {
+  const sel = document.getElementById('seasonFilter');
+  if (!sel || !scriptUrl) return;
+  try {
+    const r = await fetch(scriptUrl + '?action=meta');
+    const d = await r.json();
+    if (!d.sheets || !d.sheets.length) return;
+    SHEET_NAMES = d.sheets;
+    const prev = currentSheet;
+    sel.innerHTML = '<option value="">— Vyberte sezónu —</option>'
+                  + '<option value="' + ALL_SHEETS + '">Všechny sezóny (hledání)</option>';
+    d.sheets.forEach(n => {
+      const o = document.createElement('option');
+      o.value = n;
+      o.textContent = n.replace(/^WS_/, 'WS');
+      sel.appendChild(o);
+    });
+    // pri prvnim otevreni nic nepredvybirame -> prvni krok je volba sezony
+    currentSheet = (prev && (prev === ALL_SHEETS || d.sheets.includes(prev))) ? prev : '';
+    sel.value = currentSheet;
+  } catch (e) { /* offline -> zustanou puvodni volby */ }
 }
 
 /* ═══════════════ PŘÍSTUPOVÝ KÓD (placené akce) ═══════════════ */
@@ -1187,6 +1243,15 @@ function showEditor() {
 const CODE_KEY = 'kilpi_gen_code';
 const getCode = () => localStorage.getItem(CODE_KEY) || '';
 // Zamek: prohlizet a nahrat podklad lze volne. Generovani a zakladani listu vyzaduje heslo.
+// Hlaska o nacitani patri do #maze-msg. Puvodni text si zapamatujeme a vracime.
+let MAZE_MSG_DEFAULT = null;
+function resetEmptyState() {
+  const mm = document.getElementById('maze-msg');
+  if (!mm) return;
+  if (MAZE_MSG_DEFAULT === null && !/Načítám/.test(mm.textContent)) MAZE_MSG_DEFAULT = mm.textContent;
+  if (/Načítám/.test(mm.textContent)) mm.textContent = MAZE_MSG_DEFAULT || 'Vyber produkt ze seznamu vlevo';
+}
+
 function renderCodeState() {
   const panel = document.getElementById('lockPanel'); if (!panel) return;
   const unlocked = !!getCode();
@@ -1498,8 +1563,10 @@ function buildPrompt(p) {
 async function callGenerate(prompt) {
   if (!scriptUrl) throw new Error('Není nastavený backend (⚙ Backend).');
   if (!getCode()) throw new Error('Chybí přístupový kód pro generování (🔒 Kód).');
+  genAbort = new AbortController();          // aby Stop prerusil i probihajici volani
   const r = await fetch(scriptUrl, {
     method: 'POST',
+    signal: genAbort.signal,
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify({ action: 'generate', code: getCode(), model: GEN_MODEL, effort: 'low', system: genSystem(), messages: [{ role: 'user', content: prompt }] })
   });
@@ -1632,6 +1699,13 @@ async function refreshPlan() {
   refreshRunButtons();
 }
 
+function stopGen() {
+  genStop = true;
+  if (genAbort) genAbort.abort();            // prerusi rozdelane volani, necekame 2 minuty
+  const m = document.getElementById('progMsg');
+  if (m) m.textContent = 'Zastavuji…';
+}
+
 async function runGen() {
   if (genRunning || !genGroups.length) return;
   const plan = planGroups();
@@ -1656,6 +1730,7 @@ async function runGen() {
       done++; streak = 0;
     } catch (e) {
       clearInterval(_tk);
+      if (genStop || e.name === 'AbortError') break;   // uzivatel zastavil -> neni to chyba
       err++; streak++;
       if (!firstErr) { firstErr = e.message; showErr(e.message); handleCodeError(e.message); }
       if (streak >= 3) {                                  // 3× po sobě = systémová chyba, nepálíme dál
@@ -1704,6 +1779,21 @@ async function pushNewSheet() {
     const d = await r.json();
     if (!d.ok) throw new Error(d.error || 'neznámá chyba');
     fm.textContent = '✓ Vytvořen list "' + d.sheet + '" – ' + d.rows + ' řádků zapsáno.';
+  } catch (e) { fm.textContent = '⚠ ' + e.message; handleCodeError(e.message); }
+}
+
+// Doplni popisky do JIZ EXISTUJICIHO listu (neprepisuje neprazdne bunky jinych radku).
+async function pushExisting() {
+  const rows = builtRows(), name = targetSheetName(), fm = document.getElementById('forkMsg');
+  if (!rows.length) return;
+  if (!scriptUrl) { fm.textContent = '⚠ Není nastavený backend.'; return; }
+  fm.textContent = 'Doplňuji do listu ' + name + ' (' + rows.length + ' řádků) …';
+  try {
+    const r = await fetch(scriptUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'upsertRows', code: getCode(), sheet: name, rows: rows }) });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || 'neznámá chyba');
+    fm.textContent = '✓ Doplněno do listu "' + name + '" – ' + (d.updated || rows.length) + ' řádků.';
   } catch (e) { fm.textContent = '⚠ ' + e.message; handleCodeError(e.message); }
 }
 
