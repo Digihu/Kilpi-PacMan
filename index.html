@@ -281,7 +281,7 @@ label.chk, #genBox label.chk { color: var(--text) !important; }
 /* jazykove pilulky: hranate jako zbytek UI (DS pouziva 8-16px, 999px jen pro odznaky) */
 .lpill { border-radius: 8px !important; padding: 6px 11px !important; display: inline-flex; align-items: center; gap: 7px; font-weight: 600; }
 .lpill .flag { font-size: 14px; line-height: 1; }
-/* Pac-Man byl limetkovy z tmaveho motivu -> do palety */
+/* PacMan byl limetkovy z tmaveho motivu -> do palety */
 #maze-pac { background: var(--accent) !important; }
 #maze-msg { color: var(--muted); }
 #backBtn, #configBtn { background: var(--surface); border: 1px solid var(--border2); color: var(--muted); }
@@ -336,6 +336,32 @@ label.chk { display: flex; align-items: center; gap: 8px; font-size: 12px; color
 #forkBox p { font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.6; }
 #forkBox .f-btns { display: flex; gap: 10px; flex-wrap: wrap; }
 #forkMsg { margin-top: 12px; font-size: 11.5px; color: var(--accent2); font-family: 'JetBrains Mono', monospace; }
+#confirmModal { display: none; position: fixed; inset: 0; background: rgba(22,39,50,0.55); z-index: 500; align-items: center; justify-content: center; }
+#confirmModal.open { display: flex; }
+#confirmBox { background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; padding: 24px 26px; width: 470px; max-width: 94vw; }
+#confirmBox h3 { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+#confirmBox p { font-size: 12.5px; color: var(--muted); line-height: 1.65; margin-bottom: 12px; }
+#confirmList { background: #fbe3e3; border: 1px solid var(--accent3); border-radius: 8px; padding: 10px 12px; font-size: 11.5px; color: #7d2b26; font-family: 'JetBrains Mono', monospace; line-height: 1.7; max-height: 150px; overflow-y: auto; margin-bottom: 16px; }
+#confirmBox .c-btns { display: flex; gap: 8px; justify-content: flex-end; }
+#confirmBox .c-btns button { border: none; border-radius: 8px; padding: 9px 18px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.c-cancel { background: var(--card); border: 1px solid var(--border2) !important; color: var(--text); }
+.c-ok { background: var(--accent3); color: #fff; }
+#styleBox { margin-top: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+#styleTools { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+#styleTools button { background: var(--card); border: 1px solid var(--border2); color: var(--text); border-radius: 7px; padding: 5px 10px; font-size: 11px; cursor: pointer; font-family: inherit; }
+#styleTools button:hover { border-color: var(--accent); color: var(--accent); }
+#styleSearch { flex: 1; min-width: 140px; background: #fff; border: 1px solid var(--border2); border-radius: 7px; padding: 6px 9px; font-size: 12px; font-family: inherit; color: var(--text); }
+#styleList { max-height: 300px; overflow-y: auto; }
+.srow { display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-bottom: 1px solid var(--border); font-size: 12px; }
+.srow:last-child { border-bottom: 0; }
+.srow:hover { background: var(--card); }
+.srow .sname { font-weight: 600; color: var(--text); min-width: 130px; }
+.srow .scat { color: var(--dim); font-size: 10.5px; flex: 1; text-transform: uppercase; letter-spacing: .03em; }
+.srow .scols { color: var(--muted); font-size: 10.5px; }
+.sbadge { font-size: 10px; font-weight: 700; border-radius: 5px; padding: 2px 7px; letter-spacing: .03em; }
+.sbadge.has { background: #e3f5e8; color: #1f6b3a; }
+.sbadge.miss { background: #fbe3e3; color: #8c3630; }
+#styleCount { font-size: 11px; color: var(--muted); padding: 8px 12px; border-top: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; }
 #lockPanel { background: var(--card); border: 1.5px solid var(--border2); border-radius: 10px; padding: 18px; }
 #lockPanel.locked { border-color: var(--accent3); background: #fbe3e3; }
 #lockPanel h5 { font-size: 12.5px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
@@ -433,7 +459,13 @@ label.chk { display: flex; align-items: center; gap: 8px; font-size: 12px; color
         <button class="seas-btn" id="seasWinter" onclick="setSeason('winter')">❄ Zimní</button>
         <input id="genYear" type="number" value="2026" oninput="refreshTarget()">
       </div>
-      <div id="targetTag">Cílový list: <b id="targetName">S26</b> &nbsp;·&nbsp; oslovení: <b id="toneTag">tykání</b></div>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--muted)">Cílový list:</span>
+        <select id="targetSheet" onchange="onTargetChange()" style="background:#fff;border:1.5px solid var(--border2);border-radius:8px;padding:8px 10px;font-size:12px;font-family:inherit;color:var(--text)">
+          <option value="__NEW__">Nový list</option>
+        </select>
+        <span id="targetTag" style="font-size:11px;color:var(--muted)">→ <b id="targetName">S26</b> &nbsp;·&nbsp; oslovení: <b id="toneTag">tykání</b></span>
+      </div>
     </div>
 
     <div class="gen-step">
@@ -448,11 +480,16 @@ label.chk { display: flex; align-items: center; gap: 8px; font-size: 12px; color
       <label class="chk"><input type="checkbox" id="skipSamples" checked onchange="reparse()"> Přeskočit vzorky (TYP KARTY = S) &mdash; doporučeno</label>
       <div id="sampleWarn" style="display:none;font-size:11px;color:var(--accent3);margin-top:6px;line-height:1.5"></div>
       <label class="chk"><input type="checkbox" id="useUl"> V dlouhém popisu použít i &lt;ul&gt; seznam klíčových vlastností</label>
-      <label class="chk"><input type="checkbox" id="onlyMissing" checked onchange="refreshPlan()"> Generovat jen chybějící (přeskočit styly, které už v cílovém listu mají popisek)</label>
-      <div style="margin-top:10px">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:5px">Nebo jen konkrétní styly (oddělte čárkou, nechte prázdné pro všechny):</div>
-        <input id="onlyStyles" type="text" placeholder="např. DEXEN-U, DENVER-JB" oninput="refreshPlan()"
-               style="width:100%;max-width:420px;background:#fff;border:1.5px solid var(--border2);border-radius:8px;padding:9px 11px;font-size:12.5px;font-family:inherit;color:var(--text)">
+      <div id="styleBox" style="display:none">
+        <div id="styleTools">
+          <button onclick="selAll(true)">Vybrat vše</button>
+          <button onclick="selAll(false)">Zrušit výběr</button>
+          <button onclick="selMissing()">Jen chybějící</button>
+          <button onclick="selHas()">Jen s popiskem</button>
+          <input id="styleSearch" type="search" placeholder="Filtrovat styly…" oninput="renderStyles()">
+        </div>
+        <div id="styleList"></div>
+        <div id="styleCount"></div>
       </div>
       <div id="planMsg" style="margin-top:10px;font-size:11.5px;font-family:'JetBrains Mono',monospace;color:var(--muted);min-height:15px"></div>
     </div>
@@ -462,7 +499,7 @@ label.chk { display: flex; align-items: center; gap: 8px; font-size: 12px; color
 
       <div id="lockPanel" class="locked">
         <h5>🔒 Generování je chráněné heslem</h5>
-        <p>Prohlédnout generátor i nahrát podklad můžete volně. Samotné generování ale běží přes placené API — proto je za heslem. Heslo vám dá správce Pac-Mana.</p>
+        <p>Prohlédnout generátor i nahrát podklad můžete volně. Samotné generování ale běží přes placené API — proto je za heslem. Heslo vám dá správce PacMana.</p>
         <div id="lockRow">
           <input id="codeInput" type="password" placeholder="Zadejte heslo" autocomplete="off">
           <button class="g-btn g-run" id="unlockBtn" onclick="unlockGen()">Odemknout</button>
@@ -484,12 +521,25 @@ label.chk { display: flex; align-items: center; gap: 8px; font-size: 12px; color
       </div>
     </div>
 
+    <div id="confirmModal">
+      <div id="confirmBox">
+        <h3>⚠ Přepíšete existující popisky</h3>
+        <p id="confirmText"></p>
+        <div id="confirmList"></div>
+        <p style="margin:0 0 14px;font-size:11.5px">Stará verze textu se <b>nedá vrátit</b> — v listu <code>_log</code> je jen náhled prvních 80 znaků.</p>
+        <div class="c-btns">
+          <button class="c-cancel" onclick="closeConfirm(false)">Zrušit</button>
+          <button class="c-ok" onclick="closeConfirm(true)">Ano, přepsat</button>
+        </div>
+      </div>
+    </div>
+
     <div id="forkBox">
       <h4>Hotovo. Co s vygenerovanými popisky?</h4>
       <p>Můžete je zařadit rovnou do Master Sheetu jako nový list, nebo si stáhnout soubor a zařadit je později.</p>
       <div class="f-btns">
-        <button class="g-btn g-run" onclick="pushNewSheet()">📑 Vytvořit nový list v Master Sheetu</button>
-        <button class="g-btn g-run" onclick="pushExisting()">➕ Doplnit do existujícího listu</button>
+        <button class="g-btn g-run" id="newSheetBtn" onclick="pushNewSheet()">📑 Vytvořit nový list <b id="newSheetName"></b></button>
+        <button class="g-btn g-run" id="existBtn" style="display:none" onclick="pushExisting()">➕ Doplnit do listu <b id="existBtnName"></b></button>
         <button class="g-btn g-alt" onclick="downloadXlsx()">⬇ Stáhnout .xlsx</button>
       </div>
       <div id="forkMsg"></div>
@@ -1193,7 +1243,7 @@ function _show(id) {
   document.getElementById('backBtn').style.display = (id === 'homeScreen') ? 'none' : 'inline-block';
 }
 function showHome() { _show('homeScreen'); }
-function showGen() { _show('genScreen'); refreshTarget(); renderCodeState(); }
+function showGen() { _show('genScreen'); refreshTarget(); renderCodeState(); fillTargetSheets(); }
 async function showEditor() {
   _show('main');
   document.getElementById('loadOverlay').style.display = 'none';
@@ -1260,7 +1310,7 @@ function renderCodeState() {
     ? '<h5>✓ Odemčeno</h5><p style="margin:0">Generování i zakládání listu je povolené. '
       + '<a href="#" onclick="clearGenCode();return false" style="color:var(--accent)">Zamknout zpět</a></p>'
     : '<h5>🔒 Generování je chráněné heslem</h5>'
-      + '<p>Prohlédnout generátor i nahrát podklad můžete volně. Samotné generování ale běží přes placené API — proto je za heslem. Heslo vám dá správce Pac-Mana.</p>'
+      + '<p>Prohlédnout generátor i nahrát podklad můžete volně. Samotné generování ale běží přes placené API — proto je za heslem. Heslo vám dá správce PacMana.</p>'
       + '<div id="lockRow"><input id="codeInput" type="password" placeholder="Zadejte heslo" autocomplete="off">'
       + '<button class="g-btn g-run" id="unlockBtn" onclick="unlockGen()">Odemknout</button></div><div id="lockMsg"></div>';
   const inp = document.getElementById('codeInput');
@@ -1269,7 +1319,7 @@ function renderCodeState() {
 }
 // tlacitka jsou aktivni jen kdyz je podklad I heslo
 function refreshRunButtons() {
-  const ready = !!(genGroups.length && getCode() && planGroups().length);
+  const ready = !!(genGroups.length && getCode() && _sel.size);
   ['runBtn','testBtn'].forEach(id => { const e = document.getElementById(id); if (e) e.disabled = !ready; });
 }
 // heslo overime hned proti backendu -> clovek se chybu dozvi ted, ne az u prvniho volani
@@ -1300,9 +1350,39 @@ function handleCodeError(msg) {
 
 /* ═══════════════ GENERATOR ═══════════════ */
 const GEN_MODEL = "claude-sonnet-5";
-const GEN_SYSTEM = "You are a senior copywriter for Kilpi, a Czech outdoor brand inspired by Scandinavian nature. You write e-shop product descriptions in 12 languages that sell without sounding like a sale.\n\nTONE: confident, active, human, premium but accessible. Never fast-fashion, never empty superlatives, never AI cliches (\"vstupte do sveta\", \"objevte kouzlo\", \"perfektni volba pro kazdeho\", \"not just X but Y\").\n\nTERMINOLOGY - translate specs correctly, never leave English jargon or invent a meaning.\nThe Czech equivalents below are written WITH full diacritics. Reproduce them exactly as written; never strip hacky and carky. The same applies to every word you write in Czech, Slovak, Polish, Romanian and Hungarian - always use correct native diacritics.\n- SNOW SKIRT -> CZ: „sněžný pás“. It is an inner waist band, NOT the hem cord.\n- SNOW GAITERS (cuffs) -> CZ: „vnitřní návleky na rukávech“. Never „snowgaitry“.\n- TAPED SEAMS -> CZ: „podlepené švy“. Never „zalepené“.\n- WATER COLLUMN -> CZ: „vodní sloupec“, in mm.\n- MOISTURE PERMEABILITY -> CZ: „prodyšnost“, always with the unit g/m²/24 h.\n- BOTTOM HEM ADJUSTABLE WITH CORD -> CZ: „spodní lem stahovatelný šňůrkou“.\n- PADDING SYNTHETIC -> CZ: „syntetická izolace“.  2 LAYER -> „dvouvrstvá“.\n- SKI PASS POCKET -> CZ: „kapsa na skipas“.  HIGH COLLAR -> „vysoký límec“.\nIf a spec is not listed, describe its function in plain native language. Never leave an English term untranslated.\n\nPUNCTUATION: every sentence ends with a full stop. Never leave two spaces in a row. Do not put a space before a comma or a full stop. Numbers keep a non-breaking-style spacing as in „10 000 mm“.\n\nGRAMMATICAL AGREEMENT (critical):\nThe style name (DENVER-JB, NINJA-U...) is a NAME, not a noun. Adjectives and participles must agree with the PRODUCT NOUN of the category, not with the name. Czech: „bunda“ is feminine -> „DENVER-JB je stavená“, NEVER „stavený“. Same rule in every language with grammatical gender. When in doubt, name the product noun in the sentence.\n\nREGISTER: use the standard retail words a parent would search for. CZ: „chlapecká“ / „dívčí“ / „dětská“, never diminutives like „klučičí“, „klučina“, „holky“. For kids’ items address the parent neutrally („vaše dítě“), do not assume the child is a son or a daughter.\n\n__TONE__Confident, active, friendly, motivating, professional — never distant, never a sales pitch.\nEach language is NATIVE copy, not a literal translation of the Czech.\n\nLONG DESCRIPTION = valid HTML rendered directly in the e-shop:\n- 2-3 <p> paragraphs: hook (a real trail/weather moment matched to the COLLECTION SEASON, product name in the first sentence) -> technology translated into a benefit -> closing (who it is for).\n- Emphasise hard facts with <strong> (water column, weight, temperature, material). Never <strong> on adjectives.\n- Allowed tags ONLY: <p>, <strong>, <br> (plus <ul>/<li> if the task asks). No attributes, no styles, no markdown.\n- Visible text 600-1000 characters.\n\nSHORT DESCRIPTION = plain text, no HTML, 90-140 chars: product name + one concrete benefit that makes someone click. Not just gender + category + name.\n\nRESPOND ONLY WITH VALID JSON, no code fences, no preamble. Keys exactly:\nshort_CZ, short_EN, short_DE, short_FR, short_IT, short_SK, short_ES, short_NL, short_RO, short_PL, short_HU, short_PT, long_CZ, long_EN, long_DE, long_FR, long_IT, long_SK, long_ES, long_NL, long_RO, long_PL, long_HU, long_PT";
+const GEN_SYSTEM = "You are a senior copywriter for Kilpi, a Czech outdoor brand inspired by Scandinavian nature. You write e-shop product descriptions in 12 languages that sell without sounding like a sale.\n\nTONE: confident, active, human, premium but accessible. Never fast-fashion, never empty superlatives, never AI cliches (\"vstupte do sveta\", \"objevte kouzlo\", \"perfektni volba pro kazdeho\", \"not just X but Y\").\n\nTERMINOLOGY - translate specs correctly, never leave English jargon or invent a meaning.\nThe Czech equivalents below are written WITH full diacritics. Reproduce them exactly as written; never strip hacky and carky. The same applies to every word you write in Czech, Slovak, Polish, Romanian and Hungarian - always use correct native diacritics.\n- SNOW SKIRT -> CZ: „sněžný pás“. It is an inner waist band, NOT the hem cord.\n- SNOW GAITERS (cuffs) -> CZ: „vnitřní návleky na rukávech“. Never „snowgaitry“.\n- TAPED SEAMS -> CZ: „podlepené švy“. Never „zalepené“.\n- WATER COLLUMN -> CZ: „vodní sloupec“, in mm.\n- MOISTURE PERMEABILITY -> CZ: „prodyšnost“, always with the unit g/m²/24 h.\n- BOTTOM HEM ADJUSTABLE WITH CORD -> CZ: „spodní lem stahovatelný šňůrkou“.\n- PADDING SYNTHETIC -> CZ: „syntetická izolace“.  2 LAYER -> „dvouvrstvá“.\n- SKI PASS POCKET -> CZ: „kapsa na skipas“.  HIGH COLLAR -> „vysoký límec“.\nIf a spec is not listed, describe its function in plain native language. Never leave an English term untranslated.\n\nANTI-FORMULA (the single most important rule):\nEvery product is generated in a separate call, so you cannot see the others. That makes you fall back on the same opening image every time. Do not.\nBANNED OPENINGS - never start with weather-as-scene-setting: „Vítr se opírá do svahu“, „Vítr řeže do tváře“, „Teploměr ukazuje hluboko pod nulou“, „Mráz na startu“, „Teplota klesá“, or any translation of these. Wind, frost and thermometers as the first image are forbidden.\nBANNED PHRASES anywhere: „stavěné přesně na tyhle chvíle“, „přesně tady nastupují“, „přesně na tuhle chvíli“, „bez kompromisů“, „volba pro každého, kdo“, „Vhodné pro každého, kdo“, „ocení každý, kdo“.\nThe CLOSING sentence must not be a target-group summary. Close on a concrete consequence, a decision, or a detail the reader will remember. Never a sentence beginning with the product name plus „je volba“.\nUse the OPENING ANGLE given in the task. Two products in the same category must never share an opening image.\n\nPUNCTUATION: every sentence ends with a full stop. Never leave two spaces in a row. Do not put a space before a comma or a full stop. Numbers keep a non-breaking-style spacing as in „10 000 mm“.\n\nGRAMMATICAL AGREEMENT (critical):\nThe style name (DENVER-JB, NINJA-U...) is a NAME, not a noun. Adjectives and participles must agree with the PRODUCT NOUN of the category, not with the name. Czech: „bunda“ is feminine -> „DENVER-JB je stavená“, NEVER „stavený“. Same rule in every language with grammatical gender. When in doubt, name the product noun in the sentence.\n\nREGISTER: use the standard retail words a parent would search for. CZ: „chlapecká“ / „dívčí“ / „dětská“, never diminutives like „klučičí“, „klučina“, „holky“. For kids’ items address the parent neutrally („vaše dítě“), do not assume the child is a son or a daughter.\n\n__TONE__Confident, active, friendly, motivating, professional — never distant, never a sales pitch.\nEach language is NATIVE copy, not a literal translation of the Czech.\n\nLONG DESCRIPTION = valid HTML rendered directly in the e-shop:\n- 2-3 <p> paragraphs: hook (a real trail/weather moment matched to the COLLECTION SEASON, product name in the first sentence) -> technology translated into a benefit -> closing (who it is for).\n- Emphasise hard facts with <strong> (water column, weight, temperature, material). Never <strong> on adjectives.\n- Allowed tags ONLY: <p>, <strong>, <br> (plus <ul>/<li> if the task asks). No attributes, no styles, no markdown.\n- Visible text 600-1000 characters.\n\nSHORT DESCRIPTION = plain text, no HTML, 90-140 chars: product name + one concrete benefit that makes someone click. Not just gender + category + name.\n\nRESPOND ONLY WITH VALID JSON, no code fences, no preamble. Keys exactly:\nshort_CZ, short_EN, short_DE, short_FR, short_IT, short_SK, short_ES, short_NL, short_RO, short_PL, short_HU, short_PT, long_CZ, long_EN, long_DE, long_FR, long_IT, long_SK, long_ES, long_NL, long_RO, long_PL, long_HU, long_PT";
 let genSeason = 'summer', genProducts = [], genGroups = [], genResults = {}, genStop = false, genRunning = false;
 let _raw = null, _fname = '';
+
+/* Kazdy styl = samostatne volani, model nevidi ostatni -> sklouzava k tomu samemu obrazu.
+   Resime dvema pakami: (a) rotujeme uhel otevreni, (b) posilame uz pouzite zacatky ve stejne kategorii. */
+const ANGLES = [
+  'Open on a decision the wearer makes (what they reach for and why).',
+  'Open on the technology, then immediately translate it into what the hands/body feel.',
+  'Open on a specific moment of USE (a lift queue, a refill stop, a summit photo) - never on the weather.',
+  'Open on a small physical detail of the product the reader can picture.',
+  'Open on a common frustration with products of this category, then answer it.',
+  'Open on the activity itself, mid-motion, with the product already on.',
+  'Open on a contrast between two situations the product handles.'
+];
+let _openings = {};   // GARMENT -> [prvni vety uz vygenerovanych popisku]
+
+function angleFor(p) {
+  const used = (_openings[p.GARMENT] || []).length;
+  return ANGLES[used % ANGLES.length];
+}
+function firstSentence(html) {
+  const t = String(html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const m = t.match(/^[^.!?]{10,140}[.!?]/);
+  return (m ? m[0] : t.slice(0, 110)).trim();
+}
+function rememberOpening(p, res) {
+  const s0 = firstSentence(res.long_CZ);
+  if (!s0) return;
+  if (!_openings[p.GARMENT]) _openings[p.GARMENT] = [];
+  _openings[p.GARMENT].push(s0);
+  if (_openings[p.GARMENT].length > 6) _openings[p.GARMENT].shift();   // staci posledni hrstka
+}
 
 /* Tone of voice se meni podle kolekce:
    - kolekce 26/27 a novejsi -> CZ/SK tykani (rozhodnuti znacky)
@@ -1495,7 +1575,7 @@ function parseRaw() {
         idxs.forEach(i => { if (genProducts[i].MODEL_ID < genProducts[rep].MODEL_ID) rep = i; });
         return { rep, idxs };
       });
-      genResults = {};
+      genResults = {}; _openings = {};
 
       const models = new Set(genProducts.map(p => p.MODEL)).size;
       const styles = new Set(genProducts.map(p => p.STYLE_NAME)).size;
@@ -1529,7 +1609,7 @@ function parseRaw() {
         (genProducts.filter(p => p._badCode).length ? '<div class="chip" style="border-color:var(--accent3)">⚠ Nevalidní kód: <b>' + genProducts.filter(p => p._badCode).length + '</b></div>' : '') +
         (ds ? '<div class="chip">Sezóna z podkladu: <b>' + targetSheetName() + '</b></div>' : '') +
         '<div class="chip" style="border-color:var(--accent2)">Volání API: <b>' + genGroups.length + '</b></div>';
-      refreshRunButtons(); refreshPlan();
+      _sel = new Set(); renderStyles(); refreshPlan().then(renderStyles);
       msg.textContent = 'Připraveno: ' + genGroups.length + ' volání → ' + genProducts.length + ' modelobarev.';
     } catch (err) {
       msg.textContent = '⚠ ' + err.message;
@@ -1554,7 +1634,13 @@ function buildPrompt(p) {
   let ref = '';
   if (p._refCZ) ref += '\nCurrent CZ short (naming reference only, do NOT copy): ' + p._refCZ;
   if (p._refEN) ref += '\nCurrent EN short (naming reference only, do NOT copy): ' + p._refEN;
-  return 'TASK: Write Kilpi product descriptions in all 12 languages.\n\nCOLLECTION: ' + ctx + '\n' + ul +
+  let anti = '\n\nOPENING ANGLE (mandatory): ' + angleFor(p);
+  const prev = _openings[p.GARMENT] || [];
+  if (prev.length) {
+    anti += '\n\nOPENINGS ALREADY USED for other products in this same category. Your first sentence must not resemble '
+         + 'any of them in image, rhythm or wording:\n- ' + prev.join('\n- ');
+  }
+  return 'TASK: Write Kilpi product descriptions in all 12 languages.\n\nCOLLECTION: ' + ctx + '\n' + ul + anti +
     '\n\nUse ONLY the specs below. Never invent a number that is not listed. Water column / permeability are in mm — ' +
     'turn them into a benefit, do not just repeat them.\n\nPRODUCT SPECS:\n' + s + ref + '\n\nRESPOND ONLY WITH VALID JSON.';
 }
@@ -1646,17 +1732,44 @@ async function testOne() {
   }
 }
 
-/* ── Rozsah generovani ──────────────────────────────────────────
-   1) rucni vyber stylu prebiji vse
-   2) "jen chybejici" = precte cilovy list a preskoci styly, ktere uz maji popisek
-   Diky tomu jde dogenerovat jediny spadly styl, aniz bychom platili zbylych 207. */
-let _existing = null;          // Set MODEL_ID, ktere uz maji popisek v cilovem listu
+/* ── Rozsah generovani ─────────────────────────────────────────
+   Podklad (.xlsx) je povinny: nese parametry, ktere Master Sheet nema.
+   Cilovy list rika, ktere styly uz popisek maji -> zaskrtavaci seznam. */
+let _existing = null;          // Set MODEL_ID s popiskem v cilovem listu
+let _sel = new Set();          // indexy vybranych skupin (genGroups)
+
+function effectiveSheet() {
+  const t = document.getElementById('targetSheet');
+  return (!t || t.value === '__NEW__') ? targetSheetName() : t.value;
+}
+function isNewSheet() {
+  const t = document.getElementById('targetSheet');
+  return !t || t.value === '__NEW__';
+}
+async function fillTargetSheets() {
+  const sel = document.getElementById('targetSheet');
+  if (!sel || !scriptUrl) return;
+  try {
+    const r = await fetch(scriptUrl + '?action=meta');
+    const d = await r.json();
+    const prev = sel.value;
+    sel.innerHTML = '<option value="__NEW__">Nový list</option>';
+    (d.sheets || []).forEach(n => {
+      const o = document.createElement('option'); o.value = n; o.textContent = 'Doplnit do: ' + n;
+      sel.appendChild(o);
+    });
+    if (prev) sel.value = prev;
+  } catch (e) {}
+}
+function onTargetChange() {
+  document.getElementById('targetTag').style.opacity = isNewSheet() ? '1' : '0.45';
+  refreshPlan();
+}
 
 async function loadExisting() {
-  const sheet = targetSheetName();
-  if (!scriptUrl) return null;
+  if (!scriptUrl || isNewSheet()) return null;      // novy list = nic tam jeste neni
   try {
-    const r = await fetch(scriptUrl + '?action=getAll&sheet=' + encodeURIComponent(sheet));
+    const r = await fetch(scriptUrl + '?action=getAll&sheet=' + encodeURIComponent(effectiveSheet()));
     const d = await r.json();
     if (!d.products) return null;
     const set = new Set();
@@ -1665,51 +1778,99 @@ async function loadExisting() {
       if (has) set.add(String(p.MODEL_ID).trim());
     });
     return set;
-  } catch (e) { return null; }   // list zatim neexistuje
+  } catch (e) { return null; }
 }
 
-function planGroups() {
-  const raw = (document.getElementById('onlyStyles').value || '').trim();
-  if (raw) {
-    const want = raw.split(',').map(x => x.trim().toUpperCase()).filter(Boolean);
-    return genGroups.filter(g => want.includes(genProducts[g.rep].STYLE_NAME.toUpperCase()));
-  }
-  if (document.getElementById('onlyMissing').checked && _existing && _existing.size) {
-    return genGroups.filter(g => !g.idxs.every(i => _existing.has(genProducts[i].MODEL_ID)));
-  }
-  return genGroups.slice();
-}
+// Styl povazujeme za popsany, kdyz popisek ma master radek NEBO nektera z jeho barev.
+// (Regenerace stejne prepise vsechny barvy, tak nema smysl cekat na kompletni sadu.)
+const groupHasCopy = g => {
+  if (!_existing) return false;
+  const master = genProducts[g.rep].MODEL;
+  if (master && _existing.has(master)) return true;
+  return g.idxs.some(i => _existing.has(genProducts[i].MODEL_ID));
+};
 
-async function refreshPlan() {
-  const el = document.getElementById('planMsg');
-  if (!genGroups.length) { el.textContent = ''; return; }
-  const raw = (document.getElementById('onlyStyles').value || '').trim();
-  if (!raw && document.getElementById('onlyMissing').checked) {
-    el.textContent = 'Zjišťuji, co už je v listu ' + targetSheetName() + ' …';
-    _existing = await loadExisting();
-  }
-  const plan = planGroups();
-  const mb = plan.reduce((a, g) => a + g.idxs.length, 0);
-  if (raw && !plan.length) { el.textContent = '⚠ Žádný styl neodpovídá zadání.'; el.style.color = 'var(--accent3)'; }
-  else {
-    el.style.color = 'var(--muted)';
-    el.textContent = 'Vygeneruje se ' + plan.length + ' z ' + genGroups.length + ' skupin → ' + mb + ' modelobarev'
-      + (_existing && _existing.size ? '  (v listu ' + targetSheetName() + ' už má popisek ' + _existing.size + ' modelobarev)' : '');
-  }
+function renderStyles() {
+  const box = document.getElementById('styleBox'), list = document.getElementById('styleList');
+  if (!genGroups.length) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  const q = (document.getElementById('styleSearch').value || '').toLowerCase();
+  list.innerHTML = '';
+  genGroups.forEach((g, gi) => {
+    const p = genProducts[g.rep];
+    if (q && !(p.STYLE_NAME + ' ' + p.GARMENT).toLowerCase().includes(q)) return;
+    const has = groupHasCopy(g);
+    const row = document.createElement('label');
+    row.className = 'srow';
+    row.innerHTML = '<input type="checkbox" ' + (_sel.has(gi) ? 'checked' : '') + ' data-gi="' + gi + '">'
+      + '<span class="sname">' + p.STYLE_NAME + '</span>'
+      + '<span class="scat">' + (p.GARMENT || '') + '</span>'
+      + '<span class="scols">' + g.idxs.length + '× barva</span>'
+      + '<span class="sbadge ' + (has ? 'has' : 'miss') + '">' + (has ? 'má popisek' : 'chybí') + '</span>';
+    row.querySelector('input').onchange = e => {
+      const i = +e.target.dataset.gi;
+      e.target.checked ? _sel.add(i) : _sel.delete(i);
+      updateCounts();
+    };
+    list.appendChild(row);
+  });
+  updateCounts();
+}
+function updateCounts() {
+  const mb = [...(_sel)].reduce((a, gi) => a + genGroups[gi].idxs.length, 0);
+  document.getElementById('styleCount').textContent =
+    'Vybráno ' + _sel.size + ' z ' + genGroups.length + ' stylů → ' + mb + ' modelobarev · ' + _sel.size + ' volání API';
+  document.getElementById('planMsg').textContent = isNewSheet()
+    ? 'Zapíše se do nového listu „' + targetSheetName() + '".'
+    : 'Doplní se do listu „' + effectiveSheet() + '" (přepíše popisky vybraných stylů).';
   refreshRunButtons();
 }
+function selAll(v) { _sel = v ? new Set(genGroups.map((_, i) => i)) : new Set(); renderStyles(); }
+function selMissing() { _sel = new Set(genGroups.map((_, i) => i).filter(i => !groupHasCopy(genGroups[i]))); renderStyles(); }
+function selHas()     { _sel = new Set(genGroups.map((_, i) => i).filter(i =>  groupHasCopy(genGroups[i]))); renderStyles(); }
 
-function stopGen() {
-  genStop = true;
-  if (genAbort) genAbort.abort();            // prerusi rozdelane volani, necekame 2 minuty
-  const m = document.getElementById('progMsg');
-  if (m) m.textContent = 'Zastavuji…';
+function planGroups() { return [...(_sel)].sort((a, b) => a - b).map(i => genGroups[i]); }
+
+async function refreshPlan() {
+  if (!genGroups.length) { document.getElementById('planMsg').textContent = ''; return; }
+  document.getElementById('planMsg').textContent = 'Zjišťuji, co už je v listu ' + effectiveSheet() + ' …';
+  _existing = await loadExisting();
+  selMissing();                       // vychozi: dogenerovat jen to, co chybi
+  if (!_sel.size) selAll(true);       // novy list nebo vse hotovo -> vyber vse
+}
+
+// Ptame se jen kdyz opravdu hrozi ztrata: mezi vybranymi je styl, ktery uz popisek ma.
+let _confirmResolve = null;
+function closeConfirm(ok) {
+  document.getElementById('confirmModal').classList.remove('open');
+  if (_confirmResolve) { _confirmResolve(ok); _confirmResolve = null; }
+}
+function confirmOverwrite(groups) {
+  const names = groups.map(g => genProducts[g.rep].STYLE_NAME);
+  const mb = groups.reduce((a, g) => a + g.idxs.length, 0);
+  const n = names.length;
+  const stylW = n === 1 ? 'styl' : (n < 5 ? 'styly' : 'stylů');
+  const which = n === 1 ? 'který už' : 'které už';
+  const haveW = n === 1 ? 'popisek má' : 'popisek mají';
+  const mbW = mb === 1 ? 'modelobarvu' : (mb < 5 ? 'modelobarvy' : 'modelobarev');
+  document.getElementById('confirmText').innerHTML =
+    'Vybrali jste <b>' + n + '</b> ' + stylW + ', ' + which + ' v listu „' + effectiveSheet() + '" ' + haveW +
+    '. Generování je přepíše ve všech 12 jazycích – celkem <b>' + mb + '</b> ' + mbW + '.';
+  document.getElementById('confirmList').innerHTML =
+    names.slice(0, 10).map(n => '• ' + n).join('<br>') + (names.length > 10 ? '<br>• … a dalších ' + (names.length - 10) : '');
+  document.getElementById('confirmModal').classList.add('open');
+  return new Promise(res => { _confirmResolve = res; });
 }
 
 async function runGen() {
   if (genRunning || !genGroups.length) return;
   const plan = planGroups();
-  if (!plan.length) { document.getElementById('progMsg').textContent = '⚠ Není co generovat.'; return; }
+  if (!plan.length) { document.getElementById('progMsg').textContent = '⚠ Nevybrali jste žádný styl.'; return; }
+  const overwrite = plan.filter(groupHasCopy);
+  if (overwrite.length && !(await confirmOverwrite(overwrite))) {
+    document.getElementById('progMsg').textContent = 'Zrušeno. Nic se negenerovalo.';
+    return;
+  }
   genRunning = true; genStop = false; hideErr();
   document.getElementById('runBtn').style.display = 'none';
   document.getElementById('stopBtn').style.display = 'inline-block';
@@ -1727,6 +1888,7 @@ async function runGen() {
       const res = await callGenerate(buildPrompt(p));
       clearInterval(_tk);
       g.idxs.forEach(i => { genResults[i] = res; });     // stejný text na všechny barvy
+      rememberOpening(p, res);                          // ať se dalsi popisek ve stejne kategorii lisi
       done++; streak = 0;
     } catch (e) {
       clearInterval(_tk);
@@ -1747,7 +1909,15 @@ async function runGen() {
   const rows = builtRows().length;
   if (!/Zastaveno po 3/.test(msg.textContent))
     msg.textContent = (genStop ? 'Zastaveno. ' : 'Hotovo. ') + done + ' stylů → ' + rows + ' modelobarev' + (err ? ', ' + err + ' chyb' : '');
-  if (rows) { document.getElementById('forkBox').style.display = 'block'; document.getElementById('forkMsg').textContent = ''; }
+  if (rows) {
+    document.getElementById('forkBox').style.display = 'block';
+    document.getElementById('forkMsg').textContent = '';
+    const nb = document.getElementById('newSheetBtn'), eb = document.getElementById('existBtn');
+    if (isNewSheet()) { nb.style.display = 'inline-block'; eb.style.display = 'none';
+      document.getElementById('newSheetName').textContent = '„' + targetSheetName() + '"'; }
+    else { nb.style.display = 'none'; eb.style.display = 'inline-block';
+      document.getElementById('existBtnName').textContent = '„' + effectiveSheet() + '"'; }
+  }
 }
 
 function builtRows() {
@@ -1782,10 +1952,28 @@ async function pushNewSheet() {
   } catch (e) { fm.textContent = '⚠ ' + e.message; handleCodeError(e.message); }
 }
 
+async function _unusedPicker() {
+  const sel = document.getElementById('existingSheet');
+  if (!sel || !scriptUrl) return;
+  try {
+    const r = await fetch(scriptUrl + '?action=meta');
+    const d = await r.json();
+    sel.innerHTML = '';
+    (d.sheets || []).forEach(n => {
+      const o = document.createElement('option');
+      o.value = n; o.textContent = n;
+      if (n === targetSheetName()) o.selected = true;
+      sel.appendChild(o);
+    });
+    if (!sel.options.length) sel.innerHTML = '<option value="">(žádné listy)</option>';
+  } catch (e) { sel.innerHTML = '<option value="">(nelze načíst)</option>'; }
+}
+
 // Doplni popisky do JIZ EXISTUJICIHO listu (neprepisuje neprazdne bunky jinych radku).
 async function pushExisting() {
-  const rows = builtRows(), name = targetSheetName(), fm = document.getElementById('forkMsg');
-  if (!rows.length) return;
+  const rows = builtRows(), fm = document.getElementById('forkMsg');
+  const name = effectiveSheet();
+  if (!rows.length || !name) return;
   if (!scriptUrl) { fm.textContent = '⚠ Není nastavený backend.'; return; }
   fm.textContent = 'Doplňuji do listu ' + name + ' (' + rows.length + ' řádků) …';
   try {
